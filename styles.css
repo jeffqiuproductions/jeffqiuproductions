@@ -1,0 +1,421 @@
+/* Jeff Production — first screen.
+   Built from the 1280 × 832 Figma frame (home-page, node 1:5). The frame sits
+   on a 12-column grid: 40px margins, 16px gutters, 85.33px columns. The front
+   card spans columns 3–10, the meta block columns 11–12 and every timeline
+   number sits over the centre of a column, so the layout here is written
+   against that grid rather than against frame pixels. */
+
+:root {
+  --color-bg: #0a090a;
+  --color-ink: #f1efe9;
+  --color-muted: #8b8984;
+  --color-placeholder: #a3a3a3;
+  --color-needle: #ff9fd0;
+
+  --font-display: "Syne", sans-serif;
+  --font-text: "Geist", sans-serif;
+
+  --margin: 40px;
+  --gutter: 16px;
+  /* Columns the front card spans (reel.js reads it). */
+  --front-cols: 8;
+
+  /* The title is 82px in the 1280 frame and scales with the window. */
+  --title-size: clamp(56px, 6.40625vw, 140px);
+  --title-lines: 1;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 1px solid var(--color-needle);
+  outline-offset: 4px;
+}
+
+/* Small caps text: Geist Medium 12, 10% tracking (Info, the meta rows). */
+.label,
+.meta {
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.link {
+  transition: opacity 0.2s;
+}
+
+.link:hover {
+  opacity: 0.6;
+}
+
+/* ---------- Screen ---------- */
+
+/* Top bar, the reel in whatever height is left, the title block at the bottom.
+   In the frame the reel's 447px card sits centred between the top bar (ends
+   at 54) and the title (starts at 656). */
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hero__bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 36px var(--margin) 0;
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ---------- Reel ---------- */
+
+.reel {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  cursor: grab;
+  touch-action: pan-y;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.reel:focus-visible {
+  outline: none;
+}
+
+.reel.is-dragging {
+  cursor: grabbing;
+}
+
+/* reel.js sets the perspective and the card size to fit the window. */
+.reel__stage {
+  position: absolute;
+  inset: 0;
+  perspective-origin: 50% 50%;
+}
+
+.reel__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--card-w, 794.67px);
+  height: var(--card-h, 447px);
+  margin: calc(var(--card-h, 447px) / -2) 0 0 calc(var(--card-w, 794.67px) / -2);
+  overflow: hidden;
+  background: #000;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Until a project has its picture or film, the card is the grey placeholder. */
+.reel__card:not(.has-media) {
+  background: var(--color-placeholder);
+}
+
+.reel__card[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
+.reel__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* A square picture sits in the middle of its card at full height. */
+.reel__media[data-ratio="1:1"] {
+  left: 50%;
+  width: auto;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+}
+
+.reel:focus-visible .reel__card.is-front {
+  outline: 1px solid var(--color-needle);
+  outline-offset: 6px;
+}
+
+/* ---------- Title, meta, timeline ---------- */
+
+.hero__foot {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  padding: 0 var(--margin) 29px;
+}
+
+/* The box is one line high (88% leading) whatever the title; a long title is
+   set smaller inside it by reel.js rather than pushing the reel up. Titles
+   slide through the box as the reel turns. */
+.title {
+  position: relative;
+  height: calc(var(--title-size) * 0.88 * var(--title-lines));
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--title-size);
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.title__text {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  white-space: nowrap;
+}
+
+/* Meta rows: muted label, bright value, both set right. The block's foot is
+   6px above the title's and its top rises above the title's, but it takes no
+   height in the row (the negative top margin): the reel centres on the gap
+   between the top bar and the title, as in the frame. */
+.meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+  margin: -200px 0 6px 32px;
+  text-align: right;
+}
+
+.meta__row {
+  display: grid;
+  grid-template-columns: 70px 86px;
+  gap: 18px;
+}
+
+.meta dt {
+  color: var(--color-muted);
+}
+
+.meta dd {
+  position: relative;
+  height: 16px;
+  margin: 0;
+  white-space: nowrap;
+  /* A mask for the values sliding through, open at the sides. */
+  clip-path: inset(0 -400px);
+}
+
+.meta__value {
+  display: block;
+}
+
+.meta__value.is-leaving {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Timeline: 1px rule with ticks, 15px high; the numbers 21px below its top. */
+.timeline {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 37px;
+  margin-top: 38px;
+  --col: calc((100% - 11 * var(--gutter)) / 12);
+}
+
+.timeline__ticks {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 15px;
+  overflow: visible;
+}
+
+/* The needle runs off the end of the rule after 12 and back on at the start,
+   so its layer clips at the rule's ends. */
+.timeline__needles {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -14px;
+  height: 33px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.needle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  will-change: transform;
+}
+
+.timeline__labels {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline__labels li {
+  position: absolute;
+  top: 21px;
+  left: calc(var(--col) / 2 + var(--i) * (var(--col) + var(--gutter)));
+  transform: translateX(-50%);
+}
+
+.timeline__labels button {
+  display: block;
+  width: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.timeline__labels button:hover,
+.timeline__labels button[aria-current="true"] {
+  color: var(--color-ink);
+}
+
+/* ---------- Backdrop ---------- */
+
+/* Dust that gathers into slowly moving filaments, see-through over the black
+   (backdrop.js draws it). It sits behind everything else on the screen. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+
+.backdrop.is-ready {
+  opacity: 1;
+}
+
+/* ---------- Smaller windows ---------- */
+
+/* Tablets: the card takes ten columns and the meta moves under the title,
+   in a row. */
+@media (max-width: 1023px) {
+  :root {
+    --margin: 32px;
+    --front-cols: 10;
+    --title-size: clamp(40px, 8.5vw, 82px);
+  }
+
+  .hero__foot {
+    grid-template-columns: 1fr;
+  }
+
+  .meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px 32px;
+    margin: 24px 0 0;
+    text-align: left;
+  }
+
+  .meta__row {
+    grid-template-columns: auto auto;
+    gap: 12px;
+  }
+
+  .meta__value.is-leaving {
+    left: 0;
+    right: auto;
+  }
+
+  .timeline {
+    margin-top: 32px;
+  }
+}
+
+/* Phones: tighter grid, and the title may take two lines. */
+@media (max-width: 639px) {
+  :root {
+    --margin: 20px;
+    --gutter: 8px;
+    --title-size: 12vw;
+    --title-lines: 2;
+  }
+
+  .hero__bar {
+    padding-top: 24px;
+  }
+
+  .title__text {
+    white-space: normal;
+    width: 100%;
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+  }
+
+  .meta__row {
+    grid-template-columns: 64px auto;
+  }
+
+  .hero__foot {
+    padding-bottom: 24px;
+  }
+
+  .timeline__labels button {
+    width: 24px;
+    font-size: 11px;
+  }
+}

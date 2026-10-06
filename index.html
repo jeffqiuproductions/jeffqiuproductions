@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jeff Production</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500&family=Syne:wght@800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- First screen — Figma "Portfolio for Jeffrey", frame home-page (1:5), 1280 × 832. -->
+  <main class="hero">
+
+    <!-- Backdrop: drifting dust behind everything, drawn by backdrop.js. -->
+    <canvas class="backdrop" aria-hidden="true"></canvas>
+
+    <header class="hero__bar">
+      <a class="brand" href="./">Jeff Production</a>
+      <a class="label link" href="#info">Info</a>
+    </header>
+
+    <!-- The reel: one card per project, laid out in 3D by reel.js. -->
+    <section class="reel" aria-roledescription="carousel" aria-label="Selected work" tabindex="0">
+      <div class="reel__stage"></div>
+    </section>
+
+    <div class="hero__foot">
+      <h1 class="title"></h1>
+
+      <dl class="meta">
+        <div class="meta__row"><dt>Type</dt><dd data-meta="type"></dd></div>
+        <div class="meta__row"><dt>Year</dt><dd data-meta="year"></dd></div>
+        <div class="meta__row"><dt>Runtime</dt><dd data-meta="runtime"></dd></div>
+        <div class="meta__row"><dt>Ratio</dt><dd data-meta="ratio"></dd></div>
+      </dl>
+
+      <!-- Timeline: ticks (drawn by reel.js on the 12-column grid), the needle
+           over the current project and a number per project. -->
+      <nav class="timeline" aria-label="Projects">
+        <svg class="timeline__ticks" aria-hidden="true"></svg>
+        <div class="timeline__needles" aria-hidden="true">
+          <img class="needle" src="assets/needle.svg" width="11" height="33" alt="">
+          <img class="needle" src="assets/needle.svg" width="11" height="33" alt="">
+        </div>
+        <ol class="timeline__labels"></ol>
+      </nav>
+    </div>
+  </main>
+
+  <script src="reel.js"></script>
+  <script src="backdrop.js"></script>
+</body>
+</html>

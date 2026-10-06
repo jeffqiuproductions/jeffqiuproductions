@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="11" height="33" viewBox="0 0 11 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Needle" clip-path="url(#clip0_0_64)">
+<path id="Vector" d="M0 0H11L5.5 7L0 0Z" fill="#FF9FD0"/>
+<path id="Vector_2" d="M6 7H5V33H6V7Z" fill="#FF9FD0"/>
+</g>
+<defs>
+<clipPath id="clip0_0_64">
+<rect width="11" height="33" fill="white"/>
+</clipPath>
+</defs>
+</svg>
