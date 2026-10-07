@@ -7,7 +7,7 @@
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500&family=Syne:wght@800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Syne:wght@800&display=swap">
   <!-- Geist's ↗ (for "Watch ↗") isn't in its latin subset; this brings just that. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500&text=%E2%86%97&display=swap">
   <link rel="stylesheet" href="styles.css">
@@ -32,7 +32,7 @@
 
     <header class="hero__bar">
       <a class="brand" href="./">Jeff.q Production</a>
-      <a class="label link" href="#info">Info</a>
+      <a class="label link watch info-open" href="#info" aria-controls="info" aria-expanded="false">Info</a>
     </header>
 
     <!-- The reel: one card per project, laid out in 3D by reel.js. -->
@@ -62,6 +62,38 @@
       </nav>
     </div>
   </main>
+
+  <!-- Info: who Jeff is, from the right over the page (columns 7 to 12),
+       which dims behind it (reel.js opens and closes it). Figma "home-page ·
+       info". The Lorem ipsum items are placeholders. -->
+  <div class="info-scrim" aria-hidden="true"></div>
+  <aside class="info" id="info" role="dialog" aria-modal="true" aria-label="Info">
+    <div class="info__bar">
+      <button class="label link watch info__close" type="button">Close</button>
+    </div>
+    <div class="info__body">
+      <h2 class="info__name">Jeff Qiu</h2>
+      <p class="info__description">Lorem ipsum dolor sit amet consectetur. Varius lacus ut enim diam quis. Rhoncus tincidunt tristique aliquam donec. Diam dolor morbi sed velit sed dignissim pellentesque amet natoque. Purus non suspendisse morbi lobortis sed neque.</p>
+      <div class="info__lists label">
+        <dl class="info__list">
+          <dt>Tools</dt>
+          <dd>Runway</dd>
+          <dd>Lorem ipsum</dd>
+          <dd>Lorem ipsum</dd>
+        </dl>
+        <dl class="info__list">
+          <dt>Services</dt>
+          <dd>AI films</dd>
+          <dd>Lorem ipsum</dd>
+          <dd>Lorem ipsum</dd>
+        </dl>
+      </div>
+      <div class="info__contact">
+        <span class="label">Email</span>
+        <a class="link watch info__email" href="mailto:loremipsum@gmail.com">loremipsum@gmail.com</a>
+      </div>
+    </div>
+  </aside>
 
   <!-- The cursor over the reel, for a mouse (reel.js). -->
   <div class="cursor" aria-hidden="true">

@@ -441,6 +441,165 @@ a {
   color: var(--color-ink);
 }
 
+/* ---------- Info ---------- */
+
+/* Info comes in from the right over the page, its edge on column 7 (Figma
+   "home-page · info"), frosted over what it covers, and the rest of the page
+   dims behind it. Down it, with no rules: the name in the title's face, the
+   description, tools and services side by side, and the email large at its
+   foot. reel.js opens and closes it. */
+.info-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.45s ease, visibility 0s 0.45s;
+}
+
+.is-info .info-scrim {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.6s ease;
+}
+
+.info {
+  --col: calc((100vw - 2 * var(--margin) - 11 * var(--gutter)) / 12);
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  width: calc(6 * var(--col) + 5 * var(--gutter) + var(--margin));
+  padding: 40px var(--margin);
+  overflow-y: auto;
+  color: var(--color-ink);
+  background: rgba(23, 23, 23, 0.82);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 0.45s cubic-bezier(0.7, 0, 0.84, 0), visibility 0s 0.45s;
+}
+
+.is-info .info {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.8s var(--ease-out);
+}
+
+/* Close, where Info is on the page. */
+.info__bar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.info__close {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.info__body {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  margin-top: 48px;
+}
+
+.info__name,
+.info__email {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-variant-numeric: lining-nums;
+}
+
+.info__name {
+  margin: 0;
+  font-size: clamp(32px, 3.75vw, 80px);
+  line-height: 1;
+}
+
+.info__description {
+  margin: 16px 0 0;
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: calc(21 / 16);
+  letter-spacing: 0.02em;
+}
+
+/* Each word turns with its line. */
+.info__word {
+  display: inline-block;
+}
+
+/* Tools and services, half the panel each: the name muted, 12 above the
+   rows, which are 20 apart as in the meta. */
+.info__lists {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--gutter);
+  margin-top: 80px;
+}
+
+.info__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.info__list dt {
+  margin-bottom: 8px;
+  color: var(--color-muted);
+}
+
+.info__list dd {
+  margin: 0;
+}
+
+/* The email at the foot, pink under the pointer like Watch; reel.js sets a
+   long one smaller to fit. */
+.info__contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 48px;
+}
+
+.info__contact .label {
+  color: var(--color-muted);
+}
+
+.info__email {
+  font-size: clamp(20px, 1.875vw, 40px);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.info__email.is-wrapped {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info,
+  .is-info .info {
+    transform: none;
+    transition: visibility 0s;
+  }
+}
+
 /* ---------- Backdrop ---------- */
 
 /* Dust that gathers into slowly moving filaments, see-through over the black
@@ -688,6 +847,10 @@ a {
   .timeline {
     margin-top: 32px;
   }
+
+  .info {
+    width: calc(8 * var(--col) + 7 * var(--gutter) + var(--margin));
+  }
 }
 
 /* Phones: tighter grid, and the title may take two lines. */
@@ -729,5 +892,19 @@ a {
   .timeline__labels button {
     width: 24px;
     font-size: 11px;
+  }
+
+  .info {
+    width: 100%;
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  .info__body {
+    margin-top: 40px;
+  }
+
+  .info__lists {
+    margin-top: 48px;
   }
 }

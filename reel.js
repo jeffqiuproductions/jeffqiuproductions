@@ -67,6 +67,8 @@
   const SLAT_OUT = 300;         // ms for a slat to turn edge on
   const SLAT_IN = 560;          // …and to turn back flat with the new words
   const SLAT_STAGGER = 55;      // ms from one slat to the next
+  const ROW_STAGGER = 45;       // ms from one row of Info to the next
+  const EMAIL_MIN = 14;         // px Info's email shrinks to before it wraps
   const CURSOR_FOLLOW = 20;     // spring rate the cursor eases after the mouse
   const CURSOR_STRETCH = 0.08;  // how far it stretches for each card a second
                                 // the reel runs at…
@@ -200,6 +202,7 @@
 
     drawTicks();
     fitTitle(title.lastElementChild);
+    if (infoOpen) fitEmail();
     render();
   }
 
@@ -536,7 +539,7 @@
 
   // The reel has come to rest on a card.
   function restFilms() {
-    if (root.classList.contains('is-loading') || root.classList.contains('is-moving') || document.hidden) return;
+    if (infoOpen || root.classList.contains('is-loading') || root.classList.contains('is-moving') || document.hidden) return;
     const index = mod(Math.round(pos), N);
     films.forEach((video, i) => {
       if (!video || i === index) return;
@@ -715,12 +718,107 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (infoOpen) {
+      if (e.key === 'Escape') closeInfo();
+      return;
+    }
     const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
     if (!step || e.metaKey || e.ctrlKey || e.altKey) return;
     e.preventDefault();
     target = Math.round(target) + step;
     wake();
   });
+
+  /* ---------- Info ---------- */
+
+  /* Info slides in from the right over the page from column 7, which dims
+     behind it, and its rows turn in one after another like the slats of a
+     blind (rows side by side together, the description line by line). Close,
+     Esc or a click on the page closes it. The films wait while it is open. */
+  const info = document.querySelector('.info');
+  const infoOpener = document.querySelector('.info-open');
+  const infoCloser = info.querySelector('.info__close');
+  const description = info.querySelector('.info__description');
+  const email = info.querySelector('.info__email');
+  const address = email.textContent.trim();
+  let infoOpen = false;
+
+  // The description word by word, so its lines can turn one after another.
+  description.replaceChildren(...description.textContent.trim().split(/\s+/).flatMap((word, i) => {
+    const span = document.createElement('span');
+    span.className = 'info__word';
+    span.textContent = word;
+    return i ? [' ', span] : [span];
+  }));
+
+  // The email on one line: one wider than the panel is set smaller to fit,
+  // down to EMAIL_MIN; past that it breaks after the @ instead.
+  function fitEmail() {
+    email.style.fontSize = '';
+    email.classList.remove('is-wrapped');
+    email.textContent = address;
+    const room = email.parentElement.clientWidth;
+    if (email.scrollWidth <= room) return;
+    const size = (parseFloat(getComputedStyle(email).fontSize) * room) / email.scrollWidth;
+    email.style.fontSize = `${Math.max(size, EMAIL_MIN)}px`;
+    if (size >= EMAIL_MIN) return;
+    const at = address.indexOf('@') + 1;
+    email.replaceChildren(address.slice(0, at), document.createElement('wbr'), address.slice(at));
+    email.classList.add('is-wrapped');
+  }
+
+  // Every row turns in its turn down the panel; rows level with each other
+  // turn together.
+  function turnInfoIn() {
+    if (reduceMotion.matches) return;
+    const rows = [...info.querySelectorAll('.info__name, .info__word, .info__list dt, .info__list dd, .info__contact > *')];
+    const top = (row) => Math.round(row.getBoundingClientRect().top);
+    const levels = [...new Set(rows.map(top))].sort((a, b) => a - b);
+    const edge = 'perspective(600px) rotateX(-90deg)';
+    rows.forEach((row) => {
+      row.getAnimations().forEach((a) => a.cancel());
+      row.animate([{ transform: edge }, { transform: 'none' }], {
+        duration: SLAT_IN,
+        delay: 250 + levels.indexOf(top(row)) * ROW_STAGGER,
+        easing: 'cubic-bezier(0.3, 1.45, 0.6, 1)',
+        fill: 'backwards',
+      });
+    });
+  }
+
+  function openInfo() {
+    if (infoOpen) return;
+    infoOpen = true;
+    stopFilm();
+    hero.inert = true;
+    root.classList.add('is-info');
+    infoOpener.setAttribute('aria-expanded', 'true');
+    history.replaceState(null, '', '#info');
+    fitEmail();
+    turnInfoIn();
+    infoCloser.focus({ preventScroll: true });
+    aimCursor();
+  }
+
+  function closeInfo() {
+    if (!infoOpen) return;
+    infoOpen = false;
+    const focused = info.contains(document.activeElement);
+    hero.inert = false;
+    root.classList.remove('is-info');
+    infoOpener.setAttribute('aria-expanded', 'false');
+    history.replaceState(null, '', location.pathname + location.search);
+    if (focused) infoOpener.focus({ preventScroll: true });
+    restFilms();
+    aimCursor();
+  }
+
+  infoOpener.addEventListener('click', (e) => {
+    e.preventDefault();
+    openInfo();
+  });
+  infoCloser.addEventListener('click', closeInfo);
+  document.querySelector('.info-scrim').addEventListener('click', closeInfo);
 
   /* ---------- Cursor ---------- */
 
@@ -738,6 +836,7 @@
   let cursorLast = 0;
 
   function stateAt(el) {
+    if (infoOpen) return '';
     if (dragging && dragging.moved) return 'drag';
     if (!(el instanceof Element) || !el.closest('.reel')) return '';
     return el.closest('.reel__sound') ? 'dot' : 'drag';
@@ -804,6 +903,7 @@
   /* ---------- Start ---------- */
 
   measure();
+  if (location.hash === '#info') openInfo();
   restFilms();
   addEventListener('resize', measure);
   // Titles are measured in Syne: measure again once it has loaded.
