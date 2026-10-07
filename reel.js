@@ -497,8 +497,7 @@
   let dragging = null;
 
   // A critically damped spring towards the target: eases in and out, and a
-  // flick hands it its speed. While the reel moves the backdrop holds still
-  // (backdrop.js), leaving the frame to the cards.
+  // flick hands it its speed.
   function frame(now) {
     const dt = Math.min(now - last, 200) / 1000;
     last = now;

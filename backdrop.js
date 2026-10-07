@@ -170,10 +170,10 @@
       running = false;
       return;
     }
-    // Nothing to draw while the loader covers the screen, and the dust holds
-    // still while the reel moves (reel.js), so the cards get the frames.
-    const resting = !root.classList.contains('is-loading') && !root.classList.contains('is-moving');
-    if (now - last >= 1000 / FPS - 2 && resting) {
+    // Nothing to draw while the loader covers the screen; otherwise the dust
+    // keeps drifting, the reel moving or not.
+    const covered = root.classList.contains('is-loading');
+    if (now - last >= 1000 / FPS - 2 && !covered) {
       last = now;
       paint(now);
     }
