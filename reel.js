@@ -416,10 +416,9 @@
 
   /* The film on the front card plays once the reel is at rest on it, with its
      sound as soon as the browser allows (after the visitor's first click, tap
-     or key) unless they turn it off. The moment the reel moves it stops; it
-     picks up where it was if the reel comes back to it, and starts over if
-     another card comes to the front. No films for reduced motion: the poster
-     stays. */
+     or key) unless they turn it off. The moment the reel moves it stops, and
+     each film keeps its place: whenever the reel comes back to it, it picks
+     up where it stopped. No films for reduced motion: the poster stays. */
   const films = cards.map((card) => card.querySelector('video'));
   let playing = null;   // the film playing, if any
   let sound = true;     // the visitor wants sound (Sound off turns it off)
@@ -493,7 +492,6 @@
       if (!video || i === index) return;
       video.fadeId = (video.fadeId || 0) + 1;
       video.pause();
-      if (video.currentTime) video.currentTime = 0;
     });
     const video = films[index];
     if (video && video !== playing && !reduceMotion.matches) startFilm(video);
