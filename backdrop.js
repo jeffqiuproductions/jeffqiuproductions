@@ -145,6 +145,7 @@
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   // Start a little way in, so the first frame already has its filaments.
   const start = performance.now() - 40000;
+  const root = document.documentElement;
   let last = -Infinity;
   let running = false;
 
@@ -169,7 +170,8 @@
       running = false;
       return;
     }
-    if (now - last >= 1000 / FPS - 2) {
+    // Nothing to draw while the loader covers the screen.
+    if (now - last >= 1000 / FPS - 2 && !root.classList.contains('is-loading')) {
       last = now;
       paint(now);
     }

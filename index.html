@@ -9,8 +9,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500&family=Syne:wght@800&display=swap">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // The loader (loader.js) covers the page while it loads. If it never
+    // starts, the page shows anyway.
+    document.documentElement.classList.add('is-loading');
+    setTimeout(function () {
+      if (!window.loaderRunning) document.documentElement.classList.remove('is-loading');
+    }, 6000);
+  </script>
 </head>
 <body>
+  <!-- Loader: a countdown leader over the page until it has loaded (loader.js). -->
+  <div class="loader" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+
   <!-- First screen — Figma "Portfolio for Jeffrey", frame home-page (1:5), 1280 × 832. -->
   <main class="hero">
 
@@ -52,5 +63,6 @@
 
   <script src="reel.js"></script>
   <script src="backdrop.js"></script>
+  <script src="loader.js"></script>
 </body>
 </html>
