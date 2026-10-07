@@ -20,10 +20,10 @@
   /* Columns the front card spans (reel.js reads it). */
   --front-cols: 8;
 
-  /* The title is 82px on a 70px line in the 1280 frame and scales with
+  /* The title is 64px on a 70px line in the 1280 frame and scales with
      the window. */
-  --title-size: clamp(56px, 6.40625vw, 140px);
-  --title-leading: calc(70 / 82);
+  --title-size: clamp(44px, 5vw, 109px);
+  --title-leading: calc(70 / 64);
   --title-lines: 1;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -194,17 +194,16 @@ a {
   transform: translateX(-50%);
 }
 
-/* Sound on / off, at the bottom left of the film while it plays; a click on
-   the film does the same. */
+/* Sound on / off, at the bottom left of the film while it plays, 16 in from
+   the corner; a click on the film does the same. */
 .reel__sound {
   position: absolute;
   left: 16px;
-  bottom: 14px;
+  bottom: 16px;
   padding: 0;
   border: 0;
   background: none;
   color: var(--color-ink);
-  text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
@@ -220,17 +219,17 @@ a {
   pointer-events: auto;
 }
 
-/* The playing film's timecode at the bottom right, hours to frames, after a
-   pink dot that beats like a recording light (reel.js keeps it). */
+/* The playing film's timecode at the bottom right, on Sound's line, hours to
+   frames, after a pink dot that beats like a recording light (reel.js keeps
+   it). */
 .reel__time {
   position: absolute;
   right: 16px;
-  bottom: 14px;
+  bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
   color: var(--color-ink);
-  text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
   font-variant-numeric: tabular-nums;
   opacity: 0;
   pointer-events: none;
@@ -292,9 +291,10 @@ a {
   padding: 0 var(--margin) 40px;
 }
 
-/* The box is one line high (70 on 82) whatever the title; a long title is
-   set smaller inside it by reel.js rather than pushing the reel up. Titles
-   slide through the box as the reel turns. */
+/* The box is one line high (64 on 70) whatever the title, and ten columns
+   wide, to the card's right edge; a long title is set smaller inside it by
+   reel.js rather than pushing the reel up. Titles turn over in the box as the
+   reel turns. */
 .title {
   position: relative;
   height: calc(var(--title-size) * var(--title-leading) * var(--title-lines));
@@ -318,16 +318,17 @@ a {
   white-space: nowrap;
 }
 
-/* Meta rows: muted label, bright value, both set right in 86px columns. The
-   block's foot is 3px above the title's and its top rises above the title's,
-   but it takes no height in the row (the negative top margin): the reel
-   centres on the gap between the top bar and the title, as in the frame. */
+/* Meta rows: muted label, bright value, both set right in 86px columns, a
+   gutter from the title's box. The block's foot is 3px above the title's and
+   its top rises above the title's, but it takes no height in the row (the
+   negative top margin): the reel centres on the gap between the top bar and
+   the title, as in the frame. */
 .meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
-  margin: -200px 0 3px 32px;
+  margin: -200px 0 3px var(--gutter);
   text-align: right;
 }
 
@@ -663,7 +664,7 @@ a {
   :root {
     --margin: 32px;
     --front-cols: 10;
-    --title-size: clamp(40px, 8.5vw, 82px);
+    --title-size: clamp(40px, 6.64vw, 64px);
   }
 
   .hero__foot {
@@ -694,7 +695,7 @@ a {
   :root {
     --margin: 20px;
     --gutter: 8px;
-    --title-size: 12vw;
+    --title-size: 9.4vw;
     --title-lines: 2;
   }
 
