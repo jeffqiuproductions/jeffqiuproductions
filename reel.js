@@ -60,7 +60,11 @@
                                 // darkens on the same way the deeper it goes
   const VOLUME = 0.8;           // a film's sound is faded up to this, or
                                 // to its own `volume`
-  const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
+  const SLATS = 6;              // rows a title turns in, like a blind's slats
+  const META_SLATS = 2;         // …and a meta value
+  const SLAT_OUT = 300;         // ms for a slat to turn edge on
+  const SLAT_IN = 560;          // …and to turn back flat with the new words
+  const SLAT_STAGGER = 55;      // ms from one slat to the next
 
   const MUTED = '#8b8984';
   const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -305,10 +309,24 @@
   /* ---------- Title and meta ---------- */
 
   function show(index, direction) {
-    const project = PROJECTS[index];
+    const from = current;
     current = index;
-    swap(title, 'title__text', project.title, direction, fitTitle);
-    META.forEach((key, row) => swap(metaValues[key], 'meta__value', metaValue(project, key), direction, null, row * 40));
+    const turn = from !== -1 && direction !== 0 && !reduceMotion.matches;
+    const rows = [
+      [title, 'title__text', (project) => project.title, SLATS, 0],
+      ...META.map((key, row) => [metaValues[key], 'meta__value', (project) => metaValue(project, key), META_SLATS, 120 + row * 70]),
+    ];
+    rows.forEach(([box, className, value, slats, delay]) => {
+      box.replaceChildren();
+      const el = words(className, value(PROJECTS[index]));
+      box.append(el);
+      if (box === title) fitTitle(el);
+      if (!turn) return;
+      const old = words(className, value(PROJECTS[from]));
+      box.append(old);
+      if (box === title) fitTitle(old);
+      blinds(box, old, el, slats, direction, delay);
+    });
     buttons.forEach((button, i) => button.setAttribute('aria-current', i === index ? 'true' : 'false'));
     cards.forEach((card, i) => card.setAttribute('aria-hidden', i === index ? 'false' : 'true'));
   }
@@ -318,7 +336,7 @@
     if (key !== 'youtube') return project[key];
     if (!project.youtube) return '—';
     const link = document.createElement('a');
-    link.className = 'link';
+    link.className = 'link watch';
     link.href = project.youtube;
     link.target = '_blank';
     link.rel = 'noopener';
@@ -327,37 +345,54 @@
     return link;
   }
 
-  /* The new text comes up from below as the old goes up and out (the other way
-     when the reel turns back). */
-  function swap(box, className, text, direction, after, delay = 0) {
-    const old = [...box.children];
-    const leaving = old.pop();
-    old.forEach((el) => el.remove());
-
+  function words(className, value) {
     const el = document.createElement('span');
     el.className = className;
-    if (typeof text === 'string') el.textContent = text;
-    else el.append(text);
-    box.append(el);
-    if (after) after(el);
+    el.append(value);
+    return el;
+  }
 
-    if (!leaving) return;
-    if (!direction || reduceMotion.matches) {
-      leaving.remove();
-      return;
-    }
-    const from = direction > 0 ? 100 : -100;
-    const options = { duration: 700, easing: EASE, delay, fill: 'backwards' };
-    el.animate([{ transform: `translateY(${from}%)` }, { transform: 'none' }], options);
+  /* The words change like a blind's slats turning: the old title, cut into
+     rows, turns edge on row after row (down the title as the reel turns on,
+     up as it turns back), and the new one's rows turn back flat; the meta
+     values, cut in two, follow one row after another. */
+  const pct = (v) => `${(v * 100).toFixed(3)}%`;
 
-    const now = getComputedStyle(leaving).transform;
-    leaving.getAnimations().forEach((a) => a.cancel());
-    leaving.classList.add('is-leaving');
-    leaving
-      .animate([{ transform: now }, { transform: `translateY(${-from}%)` }], { ...options, fill: 'forwards' })
-      .onfinish = () => leaving.remove();
-    // Animations stall in a hidden tab; don't let the old text pile up there.
-    setTimeout(() => leaving.remove(), options.duration + delay + 200);
+  function slatsOf(el, n) {
+    return Array.from({ length: n }, (_, i) => {
+      const slat = el.cloneNode(true);
+      slat.classList.add('is-slat');
+      slat.setAttribute('aria-hidden', 'true');
+      slat.style.clipPath = `inset(${pct(i / n)} 0 ${pct((n - i - 1) / n)} 0)`;
+      slat.style.transformOrigin = `50% ${pct((i + 0.5) / n)}`;
+      return slat;
+    });
+  }
+
+  function blinds(box, old, el, n, direction, delay) {
+    const outs = slatsOf(old, n);
+    const ins = slatsOf(el, n);
+    old.remove();
+    el.style.visibility = 'hidden';
+    box.append(...outs, ...ins);
+
+    const turn = (deg) => `perspective(600px) rotateX(${deg}deg)`;
+    const at = (i) => delay + (direction > 0 ? i : n - 1 - i) * SLAT_STAGGER;
+    outs.forEach((slat, i) => slat.animate(
+      [{ transform: turn(0) }, { transform: turn(direction * 90) }],
+      { duration: SLAT_OUT, delay: at(i), easing: 'cubic-bezier(0.5, 0, 0.9, 0.5)', fill: 'forwards' },
+    ));
+    ins.forEach((slat, i) => slat.animate(
+      [{ transform: turn(-direction * 90) }, { transform: turn(0) }],
+      { duration: SLAT_IN, delay: at(i) + SLAT_OUT, easing: 'cubic-bezier(0.3, 1.45, 0.6, 1)', fill: 'backwards' },
+    ));
+    // Animations stall in a hidden tab: settle on time regardless.
+    setTimeout(() => {
+      if (!el.isConnected) return;
+      el.style.visibility = '';
+      outs.forEach((slat) => slat.remove());
+      ins.forEach((slat) => slat.remove());
+    }, delay + (n - 1) * SLAT_STAGGER + SLAT_OUT + SLAT_IN + 40);
   }
 
   /* A title set too wide for its box (or too many lines on a phone) is set

@@ -75,6 +75,16 @@ a {
   opacity: 0.6;
 }
 
+/* Watch ↗ turns needle pink rather than fading. */
+.link.watch {
+  transition: color 0.2s;
+}
+
+.link.watch:is(:hover, :focus-visible) {
+  color: var(--color-needle);
+  opacity: 1;
+}
+
 /* ---------- Screen ---------- */
 
 /* Top bar, the reel in whatever height is left, the title block at the bottom.
@@ -278,7 +288,7 @@ a {
   height: 16px;
   margin: 0;
   white-space: nowrap;
-  /* A mask for the values sliding through, open at the sides. */
+  /* Keeps a value's slats to its row as they turn, open at the sides. */
   clip-path: inset(0 -400px);
 }
 
@@ -286,9 +296,15 @@ a {
   display: block;
 }
 
-.meta__value.is-leaving {
+/* The slats of the old and new words (reel.js), over one another. */
+.is-slat {
+  pointer-events: none;
+}
+
+.meta__value.is-slat {
   position: absolute;
   top: 0;
+  left: 0;
   right: 0;
 }
 
@@ -497,11 +513,6 @@ a {
   .meta__row {
     grid-template-columns: auto auto;
     gap: 12px;
-  }
-
-  .meta__value.is-leaving {
-    left: 0;
-    right: auto;
   }
 
   .timeline {
