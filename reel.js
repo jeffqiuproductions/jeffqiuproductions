@@ -34,7 +34,7 @@
   const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
   const INK = '#f1efe9';
-  const LINE = '#3d3d3d';
+  const MUTED = '#8b8984';
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const root = document.documentElement;
@@ -160,9 +160,9 @@
       ticks.append(el);
       return el;
     };
-    path(`M0 0.5H${width}`, { stroke: LINE });
-    path(short, { stroke: LINE });
-    majors = PROJECTS.map((_, i) => path(`M${x(col / 2 + i * unit)} 1V14`, { stroke: i === current ? INK : LINE }));
+    path(`M0 0.5H${width}`, { stroke: MUTED });
+    path(short, { stroke: MUTED });
+    majors = PROJECTS.map((_, i) => path(`M${x(col / 2 + i * unit)} 1V14`, { stroke: i === current ? INK : MUTED }));
   }
 
   /* ---------- Render ---------- */
@@ -217,7 +217,7 @@
     swap(title, 'title__text', project.title, direction, fitTitle);
     META.forEach((key, row) => swap(metaValues[key], 'meta__value', project[key], direction, null, row * 40));
     buttons.forEach((button, i) => button.setAttribute('aria-current', i === index ? 'true' : 'false'));
-    majors.forEach((tick, i) => tick.setAttribute('stroke', i === index ? INK : LINE));
+    majors.forEach((tick, i) => tick.setAttribute('stroke', i === index ? INK : MUTED));
     cards.forEach((card, i) => card.setAttribute('aria-hidden', i === index ? 'false' : 'true'));
   }
 
