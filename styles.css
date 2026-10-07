@@ -6,9 +6,10 @@
    against that grid rather than against frame pixels. */
 
 :root {
-  --color-bg: #0a090a;
+  --color-bg: #171717;
   --color-ink: #f1efe9;
   --color-muted: #8b8984;
+  --color-line: #3d3d3d;
   --color-placeholder: #a3a3a3;
   --color-needle: #ff9fd0;
 
@@ -20,8 +21,10 @@
   /* Columns the front card spans (reel.js reads it). */
   --front-cols: 8;
 
-  /* The title is 82px in the 1280 frame and scales with the window. */
+  /* The title is 82px on a 70px line in the 1280 frame and scales with
+     the window. */
   --title-size: clamp(56px, 6.40625vw, 140px);
+  --title-leading: calc(70 / 82);
   --title-lines: 1;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -54,14 +57,14 @@ a {
   outline-offset: 4px;
 }
 
-/* Small caps text: Geist Medium 12, 10% tracking (Info, the meta rows). */
+/* Small caps text: Geist Medium 12, 2% tracking (Info, the meta rows). */
 .label,
 .meta {
   font-family: var(--font-text);
   font-weight: 500;
   font-size: 12px;
   line-height: 16px;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.24px;
   text-transform: uppercase;
 }
 
@@ -76,8 +79,8 @@ a {
 /* ---------- Screen ---------- */
 
 /* Top bar, the reel in whatever height is left, the title block at the bottom.
-   In the frame the reel's 447px card sits centred between the top bar (ends
-   at 54) and the title (starts at 656). */
+   In the frame the reel's 440px card sits centred between the top bar (ends
+   at 59) and the title (starts at 647). */
 .hero {
   position: relative;
   display: flex;
@@ -92,16 +95,16 @@ a {
 .hero__bar {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  padding: 36px var(--margin) 0;
+  align-items: center;
+  padding: 40px var(--margin) 0;
 }
 
 .brand {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 15px;
-  line-height: 18px;
-  letter-spacing: 0.3px;
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: 0.32px;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -138,8 +141,8 @@ a {
   left: 50%;
   top: 50%;
   width: var(--card-w, 794.67px);
-  height: var(--card-h, 447px);
-  margin: calc(var(--card-h, 447px) / -2) 0 0 calc(var(--card-w, 794.67px) / -2);
+  height: var(--card-h, 440px);
+  margin: calc(var(--card-h, 440px) / -2) 0 0 calc(var(--card-w, 794.67px) / -2);
   overflow: hidden;
   background: #000;
   backface-visibility: hidden;
@@ -184,21 +187,21 @@ a {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: end;
-  padding: 0 var(--margin) 29px;
+  padding: 0 var(--margin) 40px;
 }
 
-/* The box is one line high (88% leading) whatever the title; a long title is
+/* The box is one line high (70 on 82) whatever the title; a long title is
    set smaller inside it by reel.js rather than pushing the reel up. Titles
    slide through the box as the reel turns. */
 .title {
   position: relative;
-  height: calc(var(--title-size) * 0.88 * var(--title-lines));
+  height: calc(var(--title-size) * var(--title-leading) * var(--title-lines));
   margin: 0;
   overflow: hidden;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: var(--title-size);
-  line-height: 0.88;
+  line-height: var(--title-leading);
   letter-spacing: -0.02em;
   text-transform: uppercase;
 }
@@ -210,23 +213,23 @@ a {
   white-space: nowrap;
 }
 
-/* Meta rows: muted label, bright value, both set right. The block's foot is
-   6px above the title's and its top rises above the title's, but it takes no
-   height in the row (the negative top margin): the reel centres on the gap
-   between the top bar and the title, as in the frame. */
+/* Meta rows: muted label, bright value, both set right in 86px columns. The
+   block's foot is 3px above the title's and its top rises above the title's,
+   but it takes no height in the row (the negative top margin): the reel
+   centres on the gap between the top bar and the title, as in the frame. */
 .meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 7px;
-  margin: -200px 0 6px 32px;
+  gap: 4px;
+  margin: -200px 0 3px 32px;
   text-align: right;
 }
 
 .meta__row {
   display: grid;
-  grid-template-columns: 70px 86px;
-  gap: 18px;
+  grid-template-columns: 86px 86px;
+  gap: 15px;
 }
 
 .meta dt {
@@ -309,11 +312,12 @@ a {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--color-muted);
+  color: var(--color-line);
   font-family: var(--font-text);
   font-weight: 500;
   font-size: 12px;
   line-height: 16px;
+  letter-spacing: 0.24px;
   text-align: center;
   cursor: pointer;
   transition: color 0.2s;
@@ -390,7 +394,7 @@ a {
 /* The brand where the page has it. */
 .loader__brand {
   position: absolute;
-  top: 36px;
+  top: 40px;
   left: var(--margin);
 }
 
@@ -477,6 +481,11 @@ a {
 
   .hero__bar {
     padding-top: 24px;
+  }
+
+  /* The brand gives way to Info on the narrowest phones. */
+  .brand {
+    font-size: min(16px, 4vw);
   }
 
   .loader__brand {

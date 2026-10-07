@@ -24,16 +24,17 @@
   const N = PROJECTS.length;
   const META = ['type', 'year', 'runtime', 'ratio'];
 
-  /* In the frame the side card's far edge meets the window edge at 407 of
-     its 447px height: that fixes the angle and the perspective. */
-  const FAR_EDGE = 407 / 447;
+  /* In the frame the side card's far edge meets the window edge at 400.63
+     of its 440px height: that fixes the angle and the perspective. */
+  const FAR_EDGE = 400.63 / 440;
+  const CARD_RATIO = 440 / 794;  // the front card's height to its width
   const MIN_ROOM = 48;          // least space above and below the card
   const WHEEL_STEP = 600;       // wheel / trackpad pixels per card
   const NUDGE = 0.12;           // a smaller push than this snaps back
   const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
   const INK = '#f1efe9';
-  const MUTED = '#8b8984';
+  const LINE = '#3d3d3d';
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const root = document.documentElement;
@@ -105,10 +106,10 @@
 
     const col = (width - 2 * margin - 11 * gutter) / 12;
     let w = frontCols * col + (frontCols - 1) * gutter;
-    let h = (w * 9) / 16;
+    let h = w * CARD_RATIO;
     if (h > room - 2 * MIN_ROOM) {
       h = Math.max(room - 2 * MIN_ROOM, 120);
-      w = (h * 16) / 9;
+      w = h / CARD_RATIO;
     }
 
     // Fold just past the front card's edge; a side card's far edge lands on
@@ -159,9 +160,9 @@
       ticks.append(el);
       return el;
     };
-    path(`M0 0.5H${width}`, { stroke: INK, 'stroke-opacity': 0.14 });
-    path(short, { stroke: INK, 'stroke-opacity': 0.22 });
-    majors = PROJECTS.map((_, i) => path(`M${x(col / 2 + i * unit)} 1V14`, { stroke: i === current ? INK : MUTED }));
+    path(`M0 0.5H${width}`, { stroke: LINE });
+    path(short, { stroke: LINE });
+    majors = PROJECTS.map((_, i) => path(`M${x(col / 2 + i * unit)} 1V14`, { stroke: i === current ? INK : LINE }));
   }
 
   /* ---------- Render ---------- */
@@ -216,7 +217,7 @@
     swap(title, 'title__text', project.title, direction, fitTitle);
     META.forEach((key, row) => swap(metaValues[key], 'meta__value', project[key], direction, null, row * 40));
     buttons.forEach((button, i) => button.setAttribute('aria-current', i === index ? 'true' : 'false'));
-    majors.forEach((tick, i) => tick.setAttribute('stroke', i === index ? INK : MUTED));
+    majors.forEach((tick, i) => tick.setAttribute('stroke', i === index ? INK : LINE));
     cards.forEach((card, i) => card.setAttribute('aria-hidden', i === index ? 'false' : 'true'));
   }
 

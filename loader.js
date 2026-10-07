@@ -68,7 +68,7 @@
 
   const brand = document.createElement('div');
   brand.className = 'brand loader__brand loader__type';
-  brand.textContent = 'Jeff Production';
+  brand.textContent = 'Jeff.q Production';
   const number = document.createElement('div');
   number.className = 'loader__number loader__type';
   number.textContent = '0';
@@ -166,7 +166,7 @@
       return fract((p3.x + p3.y) * p3.z);
     }
 
-    const vec3 BG = vec3(10.0, 9.0, 10.0) / 255.0;
+    const vec3 BG = vec3(23.0) / 255.0;   // --color-bg
     const float TAU = 6.2831853;
 
     void main() {
