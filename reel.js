@@ -29,11 +29,15 @@
   const FAR_EDGE = 400.63 / 440;
   const CARD_RATIO = 440 / 794;  // the front card's height to its width
   const MIN_ROOM = 48;          // least space above and below the card
-  const WHEEL_STEP = 600;       // wheel / trackpad pixels per card
+  const SIDE_CARDS = 3;         // cards laid out on each side of the front one
+  const WHEEL_START = 20;       // wheel / trackpad pixels before the first card
+  const WHEEL_STEP = 400;       // …and for each card after it, in one gesture
+  const WHEEL_MAX = 3;          // cards one gesture can move at most
   const NUDGE = 0.12;           // a smaller push than this snaps back
+  const GLIDE = 7;              // spring rate gliding to a card (lower is softer)
+  const FOLLOW = 24;            // spring rate following a drag
   const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
-  const INK = '#f1efe9';
   const MUTED = '#8b8984';
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -92,9 +96,10 @@
   /* The reel is a strip of cards folded at both sides of the front card: flat
      across the middle, then turning away into the screen. A card's two ends
      sit on the strip and the card runs straight between them, so on its way
-     round a fold it cuts the corner (and narrows a little) instead of bending. */
+     round a fold it cuts the corner (and narrows a little) instead of bending.
+     The cards are spaced so the gap between them on screen is always the
+     gutter, however far round the fold they have gone. */
   let geo = null;
-  let majors = [];
 
   function measure() {
     const style = getComputedStyle(root);
@@ -131,7 +136,7 @@
 
     const lineWidth = timeline.clientWidth;
     const lineCol = (lineWidth - 11 * gutter) / 12;
-    geo = { w, gap: gutter, fold, cos, sin, dragUnit, line: { width: lineWidth, col: lineCol, unit: lineCol + gutter } };
+    geo = { w, gap: gutter, fold, cos, sin, perspective, dragUnit, line: { width: lineWidth, col: lineCol, unit: lineCol + gutter } };
 
     drawTicks();
     fitTitle(title.lastElementChild);
@@ -140,29 +145,25 @@
 
   /* Timeline rule: a long tick over each column's centre (one per project),
      three short ones between, all on whole pixels so they stay sharp. */
+  const tickX = (n) => Math.round(n) + 0.5;
+
   function drawTicks() {
     const { width, col, unit } = geo.line;
-    const x = (n) => Math.round(n) + 0.5;
     const quarter = unit / 4;
     let short = '';
+    let long = '';
     for (let j = -Math.floor(col / 2 / quarter); ; j++) {
       const at = col / 2 + j * quarter;
       if (at >= width) break;
-      if (at > 0 && mod(j, 4) !== 0) short += `M${x(at)} 1V7`;
+      if (at < 0) continue;
+      if (mod(j, 4) !== 0) short += `M${tickX(at)} 1V7`;
+      else long += `M${tickX(at)} 1V14`;
     }
-
     ticks.setAttribute('viewBox', `0 0 ${width} 15`);
-    ticks.innerHTML = '';
-    const path = (d, attrs) => {
-      const el = document.createElementNS(SVG_NS, 'path');
-      el.setAttribute('d', d);
-      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-      ticks.append(el);
-      return el;
-    };
-    path(`M0 0.5H${width}`, { stroke: MUTED });
-    path(short, { stroke: MUTED });
-    majors = PROJECTS.map((_, i) => path(`M${x(col / 2 + i * unit)} 1V14`, { stroke: i === current ? INK : MUTED }));
+    ticks.innerHTML =
+      `<path d="M0 0.5H${width}" stroke="${MUTED}"/>` +
+      `<path d="${short}" stroke="${MUTED}"/>` +
+      `<path d="${long}" stroke="${MUTED}"/>`;
   }
 
   /* ---------- Render ---------- */
@@ -173,35 +174,76 @@
   let current = -1;   // project shown in the title
   let last = 0;
 
+  // A point s along the strip, in 3D…
+  function onStrip(s) {
+    const { fold, cos, sin } = geo;
+    const a = Math.abs(s);
+    if (a <= fold) return [s, 0];
+    const t = a - fold;
+    return [Math.sign(s) * (fold + t * cos), -t * sin];
+  }
+
+  // …where it lands across the screen (from the middle, in the stage's
+  // perspective), and back: the same on the flat part; round a fold the
+  // strip runs away into the screen and closes up.
+  function project(s) {
+    const [x, z] = onStrip(s);
+    return (x * geo.perspective) / (geo.perspective - z);
+  }
+
+  function unproject(x) {
+    const { fold, cos, sin, perspective } = geo;
+    const a = Math.abs(x);
+    if (a <= fold) return x;
+    const room = perspective * cos - a * sin;   // gone at the vanishing point
+    return room > 0 ? Math.sign(x) * (fold + (perspective * (a - fold)) / room) : null;
+  }
+
   function render() {
-    const { w, gap, fold, cos, sin, line } = geo;
-    const onStrip = (s) => {
-      const a = Math.abs(s);
-      if (a <= fold) return [s, 0];
-      const t = a - fold;
-      return [Math.sign(s) * (fold + t * cos), -t * sin];
-    };
+    const { w, gap, line } = geo;
+
+    // The card nearest the middle sits where the reel is; the others follow
+    // it outwards, each one gutter on screen from the last.
+    const anchor = Math.round(pos);
+    const start = (anchor - pos) * (w + gap) - w / 2;
+    const spans = new Map([[mod(anchor, N), [start, start + w]]]);
+    const reach = Math.min(SIDE_CARDS, Math.floor((N - 1) / 2));
+    for (const side of [1, -1]) {
+      let edge = side > 0 ? start + w : start;
+      for (let k = 1; k <= reach; k++) {
+        const near = unproject(project(edge) + side * gap);
+        if (near === null) break;
+        const far = near + side * w;
+        spans.set(mod(anchor + side * k, N), side > 0 ? [near, far] : [far, near]);
+        edge = far;
+      }
+    }
 
     cards.forEach((card, i) => {
-      const d = wrap(i - pos);
-      const shown = Math.abs(d) < 3.5;
-      if (card.hidden === shown) card.hidden = !shown;
-      if (!shown) return;
-      const centre = d * (w + gap);
-      const [ax, az] = onStrip(centre - w / 2);
-      const [bx, bz] = onStrip(centre + w / 2);
+      const span = spans.get(i);
+      if (card.hidden === Boolean(span)) card.hidden = !span;
+      if (!span) return;
+      const [ax, az] = onStrip(span[0]);
+      const [bx, bz] = onStrip(span[1]);
       const dx = bx - ax;
       const dz = bz - az;
       card.style.transform =
         `translate3d(${(ax + bx) / 2}px, 0, ${(az + bz) / 2}px) ` +
         `rotateY(${Math.atan2(-dz, dx)}rad) scaleX(${Math.hypot(dx, dz) / w})`;
-      card.classList.toggle('is-front', Math.abs(d) < 0.5);
+      card.classList.toggle('is-front', i === mod(anchor, N));
       const video = card.querySelector('video');
-      if (video) Math.abs(d) < 1.5 ? video.play().catch(() => {}) : video.pause();
+      if (video) Math.abs(wrap(i - pos)) < 1.5 ? video.play().catch(() => {}) : video.pause();
     });
 
     // The needle runs past 12 and comes back on at the start, like the reel.
-    const x = line.col / 2 + mod(pos, N) * line.unit - 5.5;
+    // On a project its stem lies exactly over the tick (drawn on whole
+    // pixels); between projects it slides from one to the next.
+    const at = mod(pos, N);
+    const from = Math.floor(at);
+    const k = at - from;
+    const tick = (i) => line.col / 2 + mod(i, N) * line.unit;
+    const offset = (i) => tickX(tick(i)) - tick(i);
+    const x = line.col / 2 + at * line.unit + offset(from) * (1 - k) + offset(from + 1) * k - 5.5;
     needles[0].style.transform = `translateX(${x}px)`;
     needles[1].style.transform = `translateX(${x - N * line.unit}px)`;
 
@@ -217,7 +259,6 @@
     swap(title, 'title__text', project.title, direction, fitTitle);
     META.forEach((key, row) => swap(metaValues[key], 'meta__value', project[key], direction, null, row * 40));
     buttons.forEach((button, i) => button.setAttribute('aria-current', i === index ? 'true' : 'false'));
-    majors.forEach((tick, i) => tick.setAttribute('stroke', i === index ? INK : MUTED));
     cards.forEach((card, i) => card.setAttribute('aria-hidden', i === index ? 'false' : 'true'));
   }
 
@@ -276,7 +317,8 @@
   let dragging = null;
 
   // A critically damped spring towards the target: eases in and out, and a
-  // flick hands it its speed.
+  // flick hands it its speed. While the reel moves the backdrop holds still
+  // (backdrop.js), leaving the frame to the cards.
   function frame(now) {
     const dt = Math.min(now - last, 200) / 1000;
     last = now;
@@ -284,7 +326,7 @@
       pos = target;
       velocity = 0;
     } else {
-      const omega = dragging ? 28 : 11;
+      const omega = dragging ? FOLLOW : GLIDE;
       const steps = Math.ceil(dt / 0.004);
       const h = dt / steps;
       for (let i = 0; i < steps; i++) {
@@ -297,13 +339,18 @@
       }
     }
     render();
-    if (pos !== target || dragging) requestAnimationFrame(frame);
-    else running = false;
+    if (pos !== target || dragging) {
+      requestAnimationFrame(frame);
+    } else {
+      running = false;
+      root.classList.remove('is-moving');
+    }
   }
 
   function wake() {
     if (running) return;
     running = true;
+    root.classList.add('is-moving');
     last = performance.now();
     requestAnimationFrame(frame);
   }
@@ -326,23 +373,25 @@
 
   /* ---------- Input ---------- */
 
-  // Wheel and trackpad, horizontal or vertical, anywhere on the screen.
-  let wheelFrom = null;
-  let wheelTimer = 0;
+  // Wheel and trackpad, horizontal or vertical, anywhere on the screen. A
+  // gesture (a turn of the wheel, a swipe and its glide) moves the reel on
+  // whole cards: one as it starts, another for each WHEEL_STEP more. The reel
+  // always heads for a card, so it never stops short and settles back.
+  let gesture = null;
+  let gestureTimer = 0;
   hero.addEventListener('wheel', (e) => {
     if (e.ctrlKey) return; // pinch zoom
     e.preventDefault();
     let delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
     if (e.deltaMode === 1) delta *= 16;
     else if (e.deltaMode === 2) delta *= innerHeight;
-    if (wheelFrom === null) wheelFrom = Math.round(target);
-    target += delta / WHEEL_STEP;
+    if (!gesture) gesture = { from: Math.round(target), sum: 0 };
+    gesture.sum += delta;
+    const steps = Math.ceil(Math.max(Math.abs(gesture.sum) - WHEEL_START, 0) / WHEEL_STEP);
+    target = gesture.from + Math.sign(gesture.sum) * Math.min(steps, WHEEL_MAX);
     wake();
-    clearTimeout(wheelTimer);
-    wheelTimer = setTimeout(() => {
-      settle(wheelFrom, target);
-      wheelFrom = null;
-    }, 140);
+    clearTimeout(gestureTimer);
+    gestureTimer = setTimeout(() => (gesture = null), 180);
   }, { passive: false });
 
   // Drag the reel; a click on a side card brings it to the front.

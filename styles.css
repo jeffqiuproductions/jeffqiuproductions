@@ -273,13 +273,14 @@ a {
 }
 
 /* The needle runs off the end of the rule after 12 and back on at the start,
-   so its layer clips at the rule's ends. */
+   so its layer clips at the rule's ends; its stem stops where the long ticks
+   do (14px down the rule). */
 .timeline__needles {
   position: absolute;
   left: 0;
   right: 0;
   top: -14px;
-  height: 33px;
+  height: 28px;
   overflow: hidden;
   pointer-events: none;
 }
