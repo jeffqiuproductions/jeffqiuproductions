@@ -55,9 +55,9 @@
   const NUDGE = 0.12;           // a smaller push than this snaps back
   const GLIDE = 7;              // spring rate gliding to a card (lower is softer)
   const FOLLOW = 24;            // spring rate following a drag
-  const DEPTH_FADE = 0.4;       // what is left of a card where the first side
-                                // card meets the window edge; it fades on
-                                // the same way the deeper a card goes
+  const DEPTH_FADE = 0.3;       // what is left of a card's light where the
+                                // first side card meets the window edge; it
+                                // darkens on the same way the deeper it goes
   const VOLUME = 0.8;           // a film's sound is faded up to this, or
                                 // to its own `volume`
   const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
@@ -212,7 +212,7 @@
   let target = 0;     // where it is going
   let velocity = 0;
   let current = -1;   // project shown in the title
-  const masks = [];   // each card's depth fade, as last set
+  const shades = [];  // each card's depth shade, as last set
   let last = 0;
 
   // A point s along the strip, in 3D…
@@ -274,15 +274,15 @@
         `rotateY(${Math.atan2(-dz, dx)}rad) scaleX(${Math.hypot(dx, dz) / w})`;
       card.classList.toggle('is-front', i === mod(anchor, N));
 
-      // The further round the fold, the further the card fades into the
-      // dark: from its near end to its far end (z runs straight along it).
+      // The further round the fold, the darker the card goes: from its near
+      // end to its far end (z runs straight along it). A shade over it, so it
+      // stays solid and the dust never shows through.
       const [na, nm, nb] = [fade(az), fade((az + bz) / 2), fade(bz)];
-      const mask = na > 0.995 && nb > 0.995 ? 'none'
-        : `linear-gradient(to right, rgba(0,0,0,${na.toFixed(3)}), rgba(0,0,0,${nm.toFixed(3)}), rgba(0,0,0,${nb.toFixed(3)}))`;
-      if (masks[i] !== mask) {
-        masks[i] = mask;
-        card.style.webkitMaskImage = mask;
-        card.style.maskImage = mask;
+      const shade = na > 0.995 && nb > 0.995 ? 'none'
+        : `linear-gradient(to right, ${[na, nm, nb].map((v) => `rgba(0,0,0,${(1 - v).toFixed(3)})`).join(', ')})`;
+      if (shades[i] !== shade) {
+        shades[i] = shade;
+        card.style.setProperty('--shade', shade);
       }
     });
 

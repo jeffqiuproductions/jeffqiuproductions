@@ -153,6 +153,15 @@ a {
   background: var(--color-placeholder);
 }
 
+/* The shade a side card darkens under as it turns away (reel.js sets it). */
+.reel__card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--shade, none);
+  pointer-events: none;
+}
+
 .reel__card[hidden] {
   display: block;
   visibility: hidden;
