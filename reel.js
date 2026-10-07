@@ -4,18 +4,30 @@
 (() => {
   /* The projects; the ones still called Lorem ipsum are placeholders. A
      project can have `youtube` (the film on YouTube, the meta's "Watch ↗")
-     and `media: { src, poster, ratio }` for its card: a film (.mp4 / .webm,
-     no sound, looping while it is at the front; `poster` is its first frame,
-     shown until it plays) or a picture, 16:9 filling the card or 1:1 set in
-     its middle, as in the Figma placeholders ("Video 16:9", "Image 1:1"). */
+     and `media: { src, poster, volume, ratio }` for its card: a film (.mp4 /
+     .webm, looping while it is at the front; `poster` is its first frame,
+     shown until it plays; `volume` evens out how loud the films are) or a
+     picture, 16:9 filling the card or 1:1 set in its middle, as in the Figma
+     placeholders ("Video 16:9", "Image 1:1"). Each film is 40 seconds of the
+     whole one, cut to the card's shape. */
   const PROJECTS = [
-    { title: 'Lorem ipsum', type: 'Short film', year: '2026', runtime: '04:12' },
-    { title: 'Dolor sit',   type: 'Commercial', year: '2026', runtime: '00:45' },
+    {
+      title: 'Ocean Wonders', type: 'AI film', year: '2025', runtime: '01:49',
+      youtube: 'https://youtu.be/wvu-Rvvs_QU',
+      // From 0:26, where the music comes in: the dolphin at sunset to the walruses.
+      media: { src: 'assets/films/ocean.mp4', poster: 'assets/films/ocean.jpg', volume: 1 },
+    },
+    {
+      title: 'The Alien Invasion', type: 'AI film', year: '2025', runtime: '01:32',
+      youtube: 'https://youtu.be/MEgY6crlBdY',
+      // From 0:32: the animals flee, the ships arrive, the attack.
+      media: { src: 'assets/films/aliens.mp4', poster: 'assets/films/aliens.jpg', volume: 0.8 },
+    },
     {
       title: 'Krakatoa 1883', type: 'AI film', year: '2025', runtime: '04:22',
       youtube: 'https://youtu.be/s6cfM57IhPw',
-      // 40 seconds from 0:56 of the film: the eruption to "Heard in Perth".
-      media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg' },
+      // From 0:56: the eruption to "Heard in Perth".
+      media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5 },
     },
     { title: 'Consectetur', type: 'Feature',    year: '2025', runtime: '92:00' },
     { title: 'Adipiscing',  type: 'Short film', year: '2025', runtime: '11:20' },
@@ -46,7 +58,8 @@
   const DEPTH_FADE = 0.4;       // what is left of a card where the first side
                                 // card meets the window edge; it fades on
                                 // the same way the deeper a card goes
-  const VOLUME = 0.8;           // the films' sound, faded up to this
+  const VOLUME = 0.8;           // a film's sound is faded up to this, or
+                                // to its own `volume`
   const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
   const MUTED = '#8b8984';
@@ -84,6 +97,7 @@
         Object.assign(media, { muted: true, loop: true, playsInline: true, preload: 'metadata' });
         media.setAttribute('muted', '');
         if (project.media.poster) media.poster = project.media.poster;
+        media.dataset.volume = project.media.volume ?? VOLUME;
       } else {
         media.alt = '';
       }
@@ -403,7 +417,7 @@
 
   function playSilent(video) {
     video.muted = true;
-    video.volume = VOLUME;
+    video.volume = Number(video.dataset.volume);
     video.play().catch(() => {});
   }
 
@@ -412,7 +426,7 @@
   function playHeard(video) {
     video.muted = false;
     video.volume = 0;
-    video.play().then(() => fadeVolume(video, VOLUME, 600), () => {
+    video.play().then(() => fadeVolume(video, Number(video.dataset.volume), 600), () => {
       if (playing !== video) return;
       playSilent(video);
       showSound();
