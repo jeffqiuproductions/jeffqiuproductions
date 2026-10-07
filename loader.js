@@ -6,6 +6,7 @@
 
 (() => {
   const MIN_TIME = 3200;    // ms the count takes at least, so it is seen
+  const MAX_WAIT = 6000;    // ms it waits for any one thing at most
   const HOLD = 450;         // ms on PICTURE START before the iris opens
   const IRIS = 1400;        // ms for the iris to open
   const DRIFT = 0.018;      // how fast the grains drift (as the backdrop's)
@@ -28,18 +29,20 @@
   /* ---------- Progress ---------- */
 
   /* What the page really waits for — its fonts, the window's load, the reel's
-     pictures and films — but no faster than a clock of MIN_TIME that moves in
-     bursts and holds, the way a load does. It only ever goes up. */
+     pictures (for a film, its poster) — but no faster than a clock of
+     MIN_TIME that moves in bursts and holds, the way a load does, and none of
+     it longer than MAX_WAIT. It only ever goes up. */
   const CLOCK = [[0, 0], [0.1, 0.07], [0.2, 0.12], [0.34, 0.38], [0.46, 0.44], [0.62, 0.71], [0.74, 0.78], [0.88, 0.94], [1, 1]];
+  const picture = (media) => (media.tagName === 'VIDEO' ? Object.assign(new Image(), { src: media.poster }) : media);
   const waits = [
     document.fonts.ready,
     new Promise((done) => (document.readyState === 'complete' ? done() : addEventListener('load', done, { once: true }))),
-    ...[...document.querySelectorAll('.reel__media')].map((media) => new Promise((done) => {
-      if (media.complete || media.readyState >= 2) return done();
-      media.addEventListener(media.tagName === 'VIDEO' ? 'loadeddata' : 'load', done, { once: true });
-      media.addEventListener('error', done, { once: true });
+    ...[...document.querySelectorAll('.reel__media')].map(picture).map((pic) => new Promise((done) => {
+      if (pic.complete) return done();
+      pic.addEventListener('load', done, { once: true });
+      pic.addEventListener('error', done, { once: true });
     })),
-  ];
+  ].map((wait) => Promise.race([wait, new Promise((done) => setTimeout(done, MAX_WAIT))]));
   let ready = 0;
   waits.forEach((wait) => wait.then(() => ready++));
 

@@ -101,9 +101,9 @@ a {
 .brand {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 16px;
-  line-height: 19px;
-  letter-spacing: 0.32px;
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: 0.24px;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -175,6 +175,32 @@ a {
   transform: translateX(-50%);
 }
 
+/* Sound on / off, at the bottom left of the film while it plays; a click on
+   the film does the same. */
+.reel__sound {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.reel__card.is-playing {
+  cursor: pointer;
+}
+
+.reel__card.is-playing .reel__sound {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .reel:focus-visible .reel__card.is-front {
   outline: 1px solid var(--color-needle);
   outline-offset: 6px;
@@ -203,6 +229,9 @@ a {
   line-height: var(--title-leading);
   letter-spacing: -0.02em;
   text-transform: uppercase;
+  /* Syne's figures are old-style by default; a year in a title stands with
+     the capitals. */
+  font-variant-numeric: lining-nums;
 }
 
 .title__text {
@@ -482,11 +511,6 @@ a {
 
   .hero__bar {
     padding-top: 24px;
-  }
-
-  /* The brand gives way to Info on the narrowest phones. */
-  .brand {
-    font-size: min(16px, 4vw);
   }
 
   .loader__brand {

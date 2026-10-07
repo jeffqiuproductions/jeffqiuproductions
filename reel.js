@@ -2,27 +2,34 @@
    meta rows, the timeline needle and numbers. */
 
 (() => {
-  /* Placeholder projects — swap in the real ones. A project can also have
-     `media: { src, ratio }` for its card: a film (.mp4 / .webm) or a picture,
-     16:9 filling the card or 1:1 set in its middle, as in the Figma
-     placeholders ("Video 16:9", "Image 1:1"). */
+  /* The projects; the ones still called Lorem ipsum are placeholders. A
+     project can have `youtube` (the film on YouTube, the meta's "Watch ↗")
+     and `media: { src, poster, ratio }` for its card: a film (.mp4 / .webm,
+     no sound, looping while it is at the front; `poster` is its first frame,
+     shown until it plays) or a picture, 16:9 filling the card or 1:1 set in
+     its middle, as in the Figma placeholders ("Video 16:9", "Image 1:1"). */
   const PROJECTS = [
-    { title: 'Lorem ipsum', type: 'Short film', year: '2026', runtime: '04:12', ratio: '2.39:1' },
-    { title: 'Dolor sit',   type: 'Commercial', year: '2026', runtime: '00:45', ratio: '16:9' },
-    { title: 'Amet',        type: 'Brand film', year: '2025', runtime: '01:30', ratio: '1.85:1' },
-    { title: 'Consectetur', type: 'Feature',    year: '2025', runtime: '92:00', ratio: '2.39:1' },
-    { title: 'Adipiscing',  type: 'Short film', year: '2025', runtime: '11:20', ratio: '1.85:1' },
-    { title: 'Elit sed',    type: 'Promo',      year: '2024', runtime: '00:30', ratio: '9:16' },
-    { title: 'Tempor',      type: 'Short film', year: '2024', runtime: '07:05', ratio: '2.00:1' },
-    { title: 'Incididunt',  type: 'Commercial', year: '2024', runtime: '01:00', ratio: '16:9' },
-    { title: 'Labore',      type: 'Brand film', year: '2023', runtime: '02:15', ratio: '2.39:1' },
-    { title: 'Magna',       type: 'Short film', year: '2023', runtime: '14:40', ratio: '4:3' },
-    { title: 'Aliqua',      type: 'Promo',      year: '2022', runtime: '00:20', ratio: '1:1' },
-    { title: 'Veniam',      type: 'Feature',    year: '2022', runtime: '88:00', ratio: '1.85:1' },
+    { title: 'Lorem ipsum', type: 'Short film', year: '2026', runtime: '04:12' },
+    { title: 'Dolor sit',   type: 'Commercial', year: '2026', runtime: '00:45' },
+    {
+      title: 'Krakatoa 1883', type: 'AI film', year: '2025', runtime: '04:22',
+      youtube: 'https://youtu.be/s6cfM57IhPw',
+      // 40 seconds from 0:56 of the film: the eruption to "Heard in Perth".
+      media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg' },
+    },
+    { title: 'Consectetur', type: 'Feature',    year: '2025', runtime: '92:00' },
+    { title: 'Adipiscing',  type: 'Short film', year: '2025', runtime: '11:20' },
+    { title: 'Elit sed',    type: 'Promo',      year: '2024', runtime: '00:30' },
+    { title: 'Tempor',      type: 'Short film', year: '2024', runtime: '07:05' },
+    { title: 'Incididunt',  type: 'Commercial', year: '2024', runtime: '01:00' },
+    { title: 'Labore',      type: 'Brand film', year: '2023', runtime: '02:15' },
+    { title: 'Magna',       type: 'Short film', year: '2023', runtime: '14:40' },
+    { title: 'Aliqua',      type: 'Promo',      year: '2022', runtime: '00:20' },
+    { title: 'Veniam',      type: 'Feature',    year: '2022', runtime: '88:00' },
   ];
 
   const N = PROJECTS.length;
-  const META = ['type', 'year', 'runtime', 'ratio'];
+  const META = ['type', 'year', 'runtime', 'youtube'];
 
   /* In the frame the side card's far edge meets the window edge at 400.63
      of its 440px height: that fixes the angle and the perspective. */
@@ -36,6 +43,10 @@
   const NUDGE = 0.12;           // a smaller push than this snaps back
   const GLIDE = 7;              // spring rate gliding to a card (lower is softer)
   const FOLLOW = 24;            // spring rate following a drag
+  const DEPTH_FADE = 0.4;       // what is left of a card where the first side
+                                // card meets the window edge; it fades on
+                                // the same way the deeper a card goes
+  const VOLUME = 0.8;           // the films' sound, faded up to this
   const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
   const MUTED = '#8b8984';
@@ -69,10 +80,25 @@
       media.className = 'reel__media';
       media.src = project.media.src;
       media.dataset.ratio = project.media.ratio || '16:9';
-      if (film) Object.assign(media, { muted: true, loop: true, playsInline: true, preload: 'metadata' });
-      else media.alt = '';
+      if (film) {
+        Object.assign(media, { muted: true, loop: true, playsInline: true, preload: 'metadata' });
+        media.setAttribute('muted', '');
+        if (project.media.poster) media.poster = project.media.poster;
+      } else {
+        media.alt = '';
+      }
       card.append(media);
       card.classList.add('has-media');
+      if (film) {
+        // Sound on / off, over the film while it plays (a click anywhere on
+        // the playing film does the same).
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'reel__sound label';
+        toggle.textContent = 'Sound off';
+        toggle.addEventListener('click', toggleSound);
+        card.append(toggle);
+      }
     }
     stage.append(card);
     return card;
@@ -172,6 +198,7 @@
   let target = 0;     // where it is going
   let velocity = 0;
   let current = -1;   // project shown in the title
+  const masks = [];   // each card's depth fade, as last set
   let last = 0;
 
   // A point s along the strip, in 3D…
@@ -219,6 +246,7 @@
       }
     }
 
+    const fade = (z) => Math.pow(DEPTH_FADE, -z / (w * geo.sin));
     cards.forEach((card, i) => {
       const span = spans.get(i);
       if (card.hidden === Boolean(span)) card.hidden = !span;
@@ -231,8 +259,17 @@
         `translate3d(${(ax + bx) / 2}px, 0, ${(az + bz) / 2}px) ` +
         `rotateY(${Math.atan2(-dz, dx)}rad) scaleX(${Math.hypot(dx, dz) / w})`;
       card.classList.toggle('is-front', i === mod(anchor, N));
-      const video = card.querySelector('video');
-      if (video) Math.abs(wrap(i - pos)) < 1.5 ? video.play().catch(() => {}) : video.pause();
+
+      // The further round the fold, the further the card fades into the
+      // dark: from its near end to its far end (z runs straight along it).
+      const [na, nm, nb] = [fade(az), fade((az + bz) / 2), fade(bz)];
+      const mask = na > 0.995 && nb > 0.995 ? 'none'
+        : `linear-gradient(to right, rgba(0,0,0,${na.toFixed(3)}), rgba(0,0,0,${nm.toFixed(3)}), rgba(0,0,0,${nb.toFixed(3)}))`;
+      if (masks[i] !== mask) {
+        masks[i] = mask;
+        card.style.webkitMaskImage = mask;
+        card.style.maskImage = mask;
+      }
     });
 
     // The needle runs past 12 and comes back on at the start, like the reel.
@@ -257,9 +294,23 @@
     const project = PROJECTS[index];
     current = index;
     swap(title, 'title__text', project.title, direction, fitTitle);
-    META.forEach((key, row) => swap(metaValues[key], 'meta__value', project[key], direction, null, row * 40));
+    META.forEach((key, row) => swap(metaValues[key], 'meta__value', metaValue(project, key), direction, null, row * 40));
     buttons.forEach((button, i) => button.setAttribute('aria-current', i === index ? 'true' : 'false'));
     cards.forEach((card, i) => card.setAttribute('aria-hidden', i === index ? 'false' : 'true'));
+  }
+
+  // The YouTube row links out to the film; a project without one has a dash.
+  function metaValue(project, key) {
+    if (key !== 'youtube') return project[key];
+    if (!project.youtube) return '—';
+    const link = document.createElement('a');
+    link.className = 'link';
+    link.href = project.youtube;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = 'Watch ↗';
+    link.setAttribute('aria-label', `Watch ${project.title} on YouTube`);
+    return link;
   }
 
   /* The new text comes up from below as the old goes up and out (the other way
@@ -271,7 +322,8 @@
 
     const el = document.createElement('span');
     el.className = className;
-    el.textContent = text;
+    if (typeof text === 'string') el.textContent = text;
+    else el.append(text);
     box.append(el);
     if (after) after(el);
 
@@ -311,6 +363,120 @@
     }
   }
 
+  /* ---------- Films ---------- */
+
+  /* The film on the front card plays once the reel is at rest on it, with its
+     sound as soon as the browser allows (after the visitor's first click, tap
+     or key) unless they turn it off. The moment the reel moves it stops; it
+     picks up where it was if the reel comes back to it, and starts over if
+     another card comes to the front. No films for reduced motion: the poster
+     stays. */
+  const films = cards.map((card) => card.querySelector('video'));
+  let playing = null;   // the film playing, if any
+  let sound = true;     // the visitor wants sound (Sound off turns it off)
+  let allowed = Boolean(navigator.userActivation && navigator.userActivation.hasBeenActive);
+
+  // Volume up or down over a moment, then `then`; a new fade replaces it.
+  function fadeVolume(video, to, ms, then) {
+    const from = video.volume;
+    const began = Date.now();
+    const id = (video.fadeId = (video.fadeId || 0) + 1);
+    (function step() {
+      if (video.fadeId !== id) return;
+      const k = Math.min((Date.now() - began) / ms, 1);
+      video.volume = from + (to - from) * k;
+      if (k < 1) setTimeout(step, 16);
+      else if (then) then();
+    })();
+  }
+
+  function showSound() {
+    films.forEach((video, i) => {
+      if (!video) return;
+      cards[i].classList.toggle('is-playing', video === playing);
+      const on = video === playing && !video.muted;
+      const toggle = cards[i].querySelector('.reel__sound');
+      toggle.textContent = on ? 'Sound on' : 'Sound off';
+      toggle.setAttribute('aria-label', on ? 'Turn the sound off' : 'Turn the sound on');
+    });
+  }
+
+  function playSilent(video) {
+    video.muted = true;
+    video.volume = VOLUME;
+    video.play().catch(() => {});
+  }
+
+  // Sound up on the film; if the browser won't have it yet, it plays on
+  // silent.
+  function playHeard(video) {
+    video.muted = false;
+    video.volume = 0;
+    video.play().then(() => fadeVolume(video, VOLUME, 600), () => {
+      if (playing !== video) return;
+      playSilent(video);
+      showSound();
+    });
+  }
+
+  function startFilm(video) {
+    playing = video;
+    video.fadeId = (video.fadeId || 0) + 1;
+    if (sound && allowed) playHeard(video);
+    else playSilent(video);
+    showSound();
+  }
+
+  function stopFilm() {
+    if (!playing) return;
+    const video = playing;
+    playing = null;
+    if (video.muted) video.pause();
+    else fadeVolume(video, 0, 150, () => video.pause());
+    showSound();
+  }
+
+  // The reel has come to rest on a card.
+  function restFilms() {
+    if (root.classList.contains('is-loading') || root.classList.contains('is-moving') || document.hidden) return;
+    const index = mod(Math.round(pos), N);
+    films.forEach((video, i) => {
+      if (!video || i === index) return;
+      video.fadeId = (video.fadeId || 0) + 1;
+      video.pause();
+      if (video.currentTime) video.currentTime = 0;
+    });
+    const video = films[index];
+    if (video && video !== playing && !reduceMotion.matches) startFilm(video);
+  }
+
+  function toggleSound() {
+    allowed = true; // a click: the browser allows sound now
+    if (!playing) return;
+    sound = playing.muted;
+    if (sound) playHeard(playing);
+    else playing.muted = true;
+    showSound();
+  }
+
+  // The first click, tap or key anywhere turns the sound on (a click on the
+  // playing film is its own toggle).
+  function allow(e) {
+    if (navigator.userActivation && !navigator.userActivation.isActive) return;
+    if (e.target instanceof Element && e.target.closest('.reel__card.is-playing')) return;
+    const first = !allowed;
+    allowed = true;
+    if (first && sound && playing && playing.muted) {
+      playHeard(playing);
+      showSound();
+    }
+  }
+  ['pointerdown', 'pointerup', 'keydown'].forEach((type) => addEventListener(type, allow, true));
+
+  // Not while the page is out of sight, nor under the loader.
+  document.addEventListener('visibilitychange', () => (document.hidden ? stopFilm() : restFilms()));
+  new MutationObserver(restFilms).observe(root, { attributes: true, attributeFilter: ['class'] });
+
   /* ---------- Motion ---------- */
 
   let running = false;
@@ -344,6 +510,7 @@
     } else {
       running = false;
       root.classList.remove('is-moving');
+      restFilms();
     }
   }
 
@@ -351,6 +518,7 @@
     if (running) return;
     running = true;
     root.classList.add('is-moving');
+    stopFilm();
     last = performance.now();
     requestAnimationFrame(frame);
   }
@@ -427,7 +595,9 @@
     reel.classList.remove('is-dragging');
     if (!drag.moved) {
       const card = e.target.closest('.reel__card');
-      if (card && !cancelled) goTo(Number(card.dataset.index));
+      if (!card || cancelled || e.target.closest('.reel__sound')) return;
+      if (card.classList.contains('is-playing')) toggleSound();
+      else goTo(Number(card.dataset.index));
       return;
     }
     // A flick carries on up to two cards; a drag that came to rest doesn't.
@@ -456,6 +626,7 @@
   /* ---------- Start ---------- */
 
   measure();
+  restFilms();
   addEventListener('resize', measure);
   // Titles are measured in Syne: measure again once it has loaded.
   document.fonts.ready.then(() => fitTitle(title.lastElementChild));
