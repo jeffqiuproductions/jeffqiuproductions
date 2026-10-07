@@ -220,6 +220,64 @@ a {
   pointer-events: auto;
 }
 
+/* The playing film's timecode at the bottom right, hours to frames, after a
+   pink dot that beats like a recording light (reel.js keeps it). */
+.reel__time {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-ink);
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.reel__time::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-needle);
+  animation: reel-rec 1.2s ease-in-out infinite;
+}
+
+@keyframes reel-rec {
+  50% { opacity: 0.2; }
+}
+
+/* How far into it a film has got, a pink line along the card's foot; it
+   stays on a film the reel has left, where the film will pick up. */
+.reel__played {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: rgba(241, 239, 233, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.reel__played::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-needle);
+  transform: scaleX(var(--played, 0));
+  transform-origin: left;
+}
+
+.reel__card.is-playing .reel__time,
+.reel__card.has-played .reel__played {
+  opacity: 1;
+}
+
 .reel:focus-visible .reel__card.is-front {
   outline: 1px solid var(--color-needle);
   outline-offset: 6px;
@@ -484,6 +542,117 @@ a {
 .is-loading .title__text,
 .is-loading .meta__value {
   transform: translateY(100%);
+}
+
+/* ---------- Cursor ---------- */
+
+/* With a mouse, over the reel the pointer is a glass disc that says Drag,
+   with an arrow either side. It stretches with the reel as it runs and its
+   arrows spread while it is held; over the Sound button it is a pink dot.
+   reel.js moves it. */
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 90;
+  display: none;
+  pointer-events: none;
+}
+
+.has-cursor .cursor {
+  display: block;
+}
+
+.has-cursor :is(.reel, .reel *) {
+  cursor: none;
+}
+
+.cursor__body {
+  position: absolute;
+}
+
+.cursor__disc {
+  position: absolute;
+  left: -40px;
+  top: -40px;
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  border: 1px solid rgba(241, 239, 233, 0.4);
+  border-radius: 50%;
+  color: var(--color-ink);
+  background: rgba(23, 23, 23, 0.3);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transform: scale(0);
+  transition: transform 0.45s var(--ease-out), color 0.25s, background-color 0.25s, border-color 0.25s;
+}
+
+.cursor__label {
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.24px;
+  text-transform: uppercase;
+  transition: opacity 0.2s;
+}
+
+/* Drag's arrows, either side of the word. */
+.cursor__disc::before,
+.cursor__disc::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -3px;
+  border: solid currentColor;
+  border-width: 1px 1px 0 0;
+  opacity: 0;
+  transition: transform 0.45s var(--ease-out), opacity 0.2s;
+}
+
+.cursor__disc::before {
+  left: 11px;
+  transform: rotate(-135deg);
+}
+
+.cursor__disc::after {
+  right: 11px;
+  transform: rotate(45deg);
+}
+
+.cursor[data-state="drag"] .cursor__disc {
+  transform: scale(1);
+}
+
+.cursor[data-state="drag"] .cursor__disc::before,
+.cursor[data-state="drag"] .cursor__disc::after {
+  opacity: 1;
+}
+
+.cursor[data-state="drag"].is-pressed .cursor__disc {
+  transform: scale(0.88);
+}
+
+.cursor[data-state="drag"].is-pressed .cursor__disc::before {
+  transform: translateX(-6px) rotate(-135deg);
+}
+
+.cursor[data-state="drag"].is-pressed .cursor__disc::after {
+  transform: translateX(6px) rotate(45deg);
+}
+
+.cursor[data-state="dot"] .cursor__disc {
+  border-color: transparent;
+  background: var(--color-needle);
+  transform: scale(0.1);
+}
+
+.cursor[data-state="dot"] .cursor__label {
+  opacity: 0;
 }
 
 /* ---------- Smaller windows ---------- */

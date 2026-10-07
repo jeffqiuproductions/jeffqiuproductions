@@ -4,9 +4,10 @@
 (() => {
   /* The projects; the ones still called Lorem ipsum are placeholders. A
      project can have `youtube` (the film on YouTube, the meta's "Watch ↗")
-     and `media: { src, poster, volume, ratio }` for its card: a film (.mp4 /
-     .webm, looping while it is at the front; `poster` is its first frame,
-     shown until it plays; `volume` evens out how loud the films are) or a
+     and `media: { src, poster, volume, fps, ratio }` for its card: a film
+     (.mp4 / .webm, looping while it is at the front; `poster` is its first
+     frame, shown until it plays; `volume` evens out how loud the films are;
+     `fps` is its frame rate, for the timecode) or a
      picture, 16:9 filling the card or 1:1 set in its middle, as in the Figma
      placeholders ("Video 16:9", "Image 1:1"). Each film is 40 seconds of the
      whole one, cut to the card's shape. */
@@ -15,19 +16,19 @@
       title: 'Ocean Wonders', type: 'AI film', year: '2025', runtime: '01:49',
       youtube: 'https://youtu.be/wvu-Rvvs_QU',
       // From 0:26, where the music comes in: the dolphin at sunset to the walruses.
-      media: { src: 'assets/films/ocean.mp4', poster: 'assets/films/ocean.jpg', volume: 1 },
+      media: { src: 'assets/films/ocean.mp4', poster: 'assets/films/ocean.jpg', volume: 1, fps: 24 },
     },
     {
       title: 'The Alien Invasion', type: 'AI film', year: '2025', runtime: '01:32',
       youtube: 'https://youtu.be/MEgY6crlBdY',
       // From 0:32: the animals flee, the ships arrive, the attack.
-      media: { src: 'assets/films/aliens.mp4', poster: 'assets/films/aliens.jpg', volume: 0.8 },
+      media: { src: 'assets/films/aliens.mp4', poster: 'assets/films/aliens.jpg', volume: 0.8, fps: 24 },
     },
     {
       title: 'Krakatoa 1883', type: 'AI film', year: '2025', runtime: '04:22',
       youtube: 'https://youtu.be/s6cfM57IhPw',
       // From 0:56: the eruption to "Heard in Perth".
-      media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5 },
+      media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5, fps: 30 },
     },
     { title: 'Consectetur', type: 'Feature',    year: '2025', runtime: '92:00' },
     { title: 'Adipiscing',  type: 'Short film', year: '2025', runtime: '11:20' },
@@ -60,11 +61,16 @@
                                 // darkens on the same way the deeper it goes
   const VOLUME = 0.8;           // a film's sound is faded up to this, or
                                 // to its own `volume`
+  const FPS = 24;               // a film's frame rate, unless it has its own
   const SLATS = 6;              // rows a title turns in, like a blind's slats
   const META_SLATS = 2;         // …and a meta value
   const SLAT_OUT = 300;         // ms for a slat to turn edge on
   const SLAT_IN = 560;          // …and to turn back flat with the new words
   const SLAT_STAGGER = 55;      // ms from one slat to the next
+  const CURSOR_FOLLOW = 20;     // spring rate the cursor eases after the mouse
+  const CURSOR_STRETCH = 0.08;  // how far it stretches for each card a second
+                                // the reel runs at…
+  const CURSOR_STRETCH_MAX = 0.4; // …and at most
 
   const MUTED = '#8b8984';
   const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -102,6 +108,8 @@
         media.setAttribute('muted', '');
         if (project.media.poster) media.poster = project.media.poster;
         media.dataset.volume = project.media.volume ?? VOLUME;
+        media.dataset.fps = project.media.fps || FPS;
+        media.addEventListener('timeupdate', () => showTime(media));
       } else {
         media.alt = '';
       }
@@ -109,13 +117,21 @@
       card.classList.add('has-media');
       if (film) {
         // Sound on / off, over the film while it plays (a click anywhere on
-        // the playing film does the same).
+        // the playing film does the same); its timecode; and how far into it
+        // the reel has seen.
         const toggle = document.createElement('button');
         toggle.type = 'button';
         toggle.className = 'reel__sound label';
         toggle.textContent = 'Sound off';
         toggle.addEventListener('click', toggleSound);
-        card.append(toggle);
+        const time = document.createElement('span');
+        time.className = 'reel__time label';
+        time.setAttribute('aria-hidden', 'true');
+        time.textContent = timecode(0, FPS);
+        const played = document.createElement('span');
+        played.className = 'reel__played';
+        played.setAttribute('aria-hidden', 'true');
+        card.append(toggle, time, played);
       }
     }
     stage.append(card);
@@ -418,7 +434,10 @@
      sound as soon as the browser allows (after the visitor's first click, tap
      or key) unless they turn it off. The moment the reel moves it stops, and
      each film keeps its place: whenever the reel comes back to it, it picks
-     up where it stopped. No films for reduced motion: the poster stays. */
+     up where it stopped. While it plays its timecode runs at the bottom
+     right, and a pink line along its foot shows how far it has got (it stays
+     on a film the reel has left). No films for reduced motion: the poster
+     stays. */
   const films = cards.map((card) => card.querySelector('video'));
   let playing = null;   // the film playing, if any
   let sound = true;     // the visitor wants sound (Sound off turns it off)
@@ -473,6 +492,37 @@
     if (sound && allowed) playHeard(video);
     else playSilent(video);
     showSound();
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(tick);
+    }
+  }
+
+  // A film's place, hours to frames.
+  function timecode(time, fps) {
+    const frames = Math.floor(time * fps + 1e-6);
+    const s = Math.floor(frames / fps);
+    return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60, frames % fps].map(pad).join(':');
+  }
+
+  function showTime(video) {
+    const card = video.parentElement;
+    const time = card.querySelector('.reel__time');
+    const text = timecode(video.currentTime, Number(video.dataset.fps));
+    if (time.textContent !== text) time.textContent = text;
+    card.style.setProperty('--played', video.duration ? (video.currentTime / video.duration).toFixed(4) : 0);
+    card.classList.toggle('has-played', video.currentTime > 0);
+  }
+
+  // Frame by frame while a film plays.
+  let ticking = false;
+  function tick() {
+    if (!playing) {
+      ticking = false;
+      return;
+    }
+    showTime(playing);
+    requestAnimationFrame(tick);
   }
 
   function stopFilm() {
@@ -557,6 +607,7 @@
       running = false;
       root.classList.remove('is-moving');
       restFilms();
+      aimCursor();
     }
   }
 
@@ -567,6 +618,8 @@
     stopFilm();
     last = performance.now();
     requestAnimationFrame(frame);
+    aimCursor();
+    wakeCursor();
   }
 
   // End a push on a whole card: at least one card on from where it began
@@ -668,6 +721,85 @@
     target = Math.round(target) + step;
     wake();
   });
+
+  /* ---------- Cursor ---------- */
+
+  /* With a mouse, over the reel a disc that says Drag (a dot over the Sound
+     button). It eases after the mouse and stretches with the reel as it
+     runs. */
+  const cursor = document.querySelector('.cursor');
+  const cursorBody = cursor.querySelector('.cursor__body');
+  const cursorLabel = cursor.querySelector('.cursor__label');
+  const mouse = matchMedia('(hover: hover) and (pointer: fine)');
+  let pointer = null;             // where the mouse is, while it is on the page
+  const drawn = { x: 0, y: 0 };   // where the cursor is
+  let cursorState = '';
+  let cursorRunning = false;
+  let cursorLast = 0;
+
+  function stateAt(el) {
+    if (dragging && dragging.moved) return 'drag';
+    if (!(el instanceof Element) || !el.closest('.reel')) return '';
+    return el.closest('.reel__sound') ? 'dot' : 'drag';
+  }
+
+  function aimCursor() {
+    if (!mouse.matches) return;
+    const state = pointer ? stateAt(document.elementFromPoint(pointer.x, pointer.y)) : '';
+    if (state === cursorState) return;
+    if (!cursorState && pointer) Object.assign(drawn, pointer); // it appears where the mouse is
+    cursorState = state;
+    cursor.dataset.state = state;
+    wakeCursor();
+  }
+
+  function wakeCursor() {
+    if (cursorRunning || !mouse.matches) return;
+    cursorRunning = true;
+    cursorLast = performance.now();
+    requestAnimationFrame(cursorFrame);
+  }
+
+  function cursorFrame(now) {
+    const dt = Math.min(now - cursorLast, 100) / 1000;
+    cursorLast = now;
+    if (pointer) {
+      const k = reduceMotion.matches ? 1 : 1 - Math.exp(-CURSOR_FOLLOW * dt);
+      drawn.x += (pointer.x - drawn.x) * k;
+      drawn.y += (pointer.y - drawn.y) * k;
+    }
+    const stretch = cursorState === 'drag' && !reduceMotion.matches
+      ? Math.min(Math.abs(velocity) * CURSOR_STRETCH, CURSOR_STRETCH_MAX) : 0;
+    cursor.style.transform = `translate3d(${drawn.x.toFixed(2)}px, ${drawn.y.toFixed(2)}px, 0)`;
+    cursorBody.style.transform = `scale(${(1 + stretch).toFixed(3)}, ${(1 - stretch / 2).toFixed(3)})`;
+    cursorLabel.style.scale = `${(1 / (1 + stretch)).toFixed(3)} ${(1 / (1 - stretch / 2)).toFixed(3)}`; // the word stays as it is
+    const caught = !pointer || Math.hypot(pointer.x - drawn.x, pointer.y - drawn.y) < 0.1;
+    if (caught && !running) cursorRunning = false;
+    else requestAnimationFrame(cursorFrame);
+  }
+
+  addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    pointer = { x: e.clientX, y: e.clientY };
+    aimCursor();
+    wakeCursor();
+  }, { passive: true });
+  // Off the page.
+  document.addEventListener('pointerout', (e) => {
+    if (e.relatedTarget) return;
+    pointer = null;
+    aimCursor();
+  });
+  addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') cursor.classList.add('is-pressed');
+  });
+  ['pointerup', 'pointercancel'].forEach((type) => addEventListener(type, () => {
+    cursor.classList.remove('is-pressed');
+    requestAnimationFrame(aimCursor);
+  }));
+  const fitCursor = () => root.classList.toggle('has-cursor', mouse.matches);
+  fitCursor();
+  mouse.addEventListener('change', fitCursor);
 
   /* ---------- Start ---------- */
 
