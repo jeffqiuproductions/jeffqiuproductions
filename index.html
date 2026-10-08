@@ -41,7 +41,8 @@
     </section>
 
     <div class="hero__foot">
-      <h1 class="title"></h1>
+      <!-- A press on the title (or Enter) opens its project's page. -->
+      <h1 class="title" tabindex="0"></h1>
 
       <dl class="meta">
         <div class="meta__row"><dt>Type</dt><dd data-meta="type"></dd></div>
@@ -94,6 +95,19 @@
       </div>
     </div>
   </aside>
+
+  <!-- A project's page: up from the bottom over the whole screen when its
+       title is pressed (reel.js fills it from the project and opens it). The
+       synopsis, credits and stills are placeholders until a project has its
+       own. -->
+  <div class="project-scrim" aria-hidden="true"></div>
+  <div class="project" role="dialog" aria-modal="true" aria-label="Project">
+    <div class="project__scroll"></div>
+    <div class="project__bar">
+      <a class="brand" href="./">Jeff.q Production</a>
+      <button class="label link watch project__close" type="button">Close</button>
+    </div>
+  </div>
 
   <!-- The cursor over the reel, for a mouse (reel.js). -->
   <div class="cursor" aria-hidden="true">

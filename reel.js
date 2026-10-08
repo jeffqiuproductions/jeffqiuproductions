@@ -10,7 +10,10 @@
      `fps` is its frame rate, for the timecode) or a
      picture, 16:9 filling the card or 1:1 set in its middle, as in the Figma
      placeholders ("Video 16:9", "Image 1:1"). Each film is 40 seconds of the
-     whole one, cut to the card's shape. */
+     whole one, cut to the card's shape. For its page (a press on the title)
+     a project can have `synopsis`, `credits` ([name, value] pairs) and
+     `stills` (pictures); until it does, the page has Lorem ipsum and the
+     poster, cropped closer, stands in for stills. */
   const PROJECTS = [
     {
       title: 'Ocean Wonders', type: 'AI film', year: '2025', runtime: '01:49',
@@ -35,10 +38,6 @@
     { title: 'Elit sed',    type: 'Promo',      year: '2024', runtime: '00:30' },
     { title: 'Tempor',      type: 'Short film', year: '2024', runtime: '07:05' },
     { title: 'Incididunt',  type: 'Commercial', year: '2024', runtime: '01:00' },
-    { title: 'Labore',      type: 'Brand film', year: '2023', runtime: '02:15' },
-    { title: 'Magna',       type: 'Short film', year: '2023', runtime: '14:40' },
-    { title: 'Aliqua',      type: 'Promo',      year: '2022', runtime: '00:20' },
-    { title: 'Veniam',      type: 'Feature',    year: '2022', runtime: '88:00' },
   ];
 
   const N = PROJECTS.length;
@@ -62,12 +61,16 @@
   const VOLUME = 0.8;           // a film's sound is faded up to this, or
                                 // to its own `volume`
   const FPS = 24;               // a film's frame rate, unless it has its own
+  const TICKS = 4;              // ticks between columns on the 12-column grid;
+                                // the timeline keeps their spacing
   const SLATS = 6;              // rows a title turns in, like a blind's slats
   const META_SLATS = 2;         // …and a meta value
   const SLAT_OUT = 300;         // ms for a slat to turn edge on
   const SLAT_IN = 560;          // …and to turn back flat with the new words
   const SLAT_STAGGER = 55;      // ms from one slat to the next
-  const ROW_STAGGER = 45;       // ms from one row of Info to the next
+  const ROW_STAGGER = 45;       // ms from one row of Info or a page to the next
+  const ROWS_AFTER = 350;       // ms into Info's or a page's slide before its
+                                // rows turn in
   const EMAIL_MIN = 14;         // px Info's email shrinks to before it wraps
   const CURSOR_FOLLOW = 20;     // spring rate the cursor eases after the mouse
   const CURSOR_STRETCH = 0.08;  // how far it stretches for each card a second
@@ -140,6 +143,7 @@
     return card;
   });
 
+  timeline.style.setProperty('--count', N);
   const buttons = PROJECTS.map((project, i) => {
     const item = document.createElement('li');
     item.style.setProperty('--i', i);
@@ -196,30 +200,35 @@
     const nextZ = (w / 2) * sin;
     const dragUnit = (nextX * perspective) / (perspective + nextZ);
 
+    // The timeline is cut into one slot a project, gutters between, like
+    // the grid's columns; its ticks keep the 12-column grid's spacing.
     const lineWidth = timeline.clientWidth;
-    const lineCol = (lineWidth - 11 * gutter) / 12;
-    geo = { w, gap: gutter, fold, cos, sin, perspective, dragUnit, line: { width: lineWidth, col: lineCol, unit: lineCol + gutter } };
+    const lineCol = (lineWidth - (N - 1) * gutter) / N;
+    const gridUnit = (lineWidth - 11 * gutter) / 12 + gutter;
+    const ticksPer = Math.max(2, Math.round(((lineCol + gutter) / gridUnit) * TICKS));
+    geo = { w, gap: gutter, fold, cos, sin, perspective, dragUnit, line: { width: lineWidth, col: lineCol, unit: lineCol + gutter, ticks: ticksPer } };
 
     drawTicks();
     fitTitle(title.lastElementChild);
     if (infoOpen) fitEmail();
+    if (projectOpen) fitWords(projectPage.querySelector('.project__title'));
     render();
   }
 
-  /* Timeline rule: a long tick over each column's centre (one per project),
-     three short ones between, all on whole pixels so they stay sharp. */
+  /* Timeline rule: a long tick over each slot's centre (one per project),
+     short ones between, all on whole pixels so they stay sharp. */
   const tickX = (n) => Math.round(n) + 0.5;
 
   function drawTicks() {
-    const { width, col, unit } = geo.line;
-    const quarter = unit / 4;
+    const { width, col, unit, ticks: per } = geo.line;
+    const step = unit / per;
     let short = '';
     let long = '';
-    for (let j = -Math.floor(col / 2 / quarter); ; j++) {
-      const at = col / 2 + j * quarter;
+    for (let j = -Math.floor(col / 2 / step); ; j++) {
+      const at = col / 2 + j * step;
       if (at >= width) break;
       if (at < 0) continue;
-      if (mod(j, 4) !== 0) short += `M${tickX(at)} 1V7`;
+      if (mod(j, per) !== 0) short += `M${tickX(at)} 1V7`;
       else long += `M${tickX(at)} 1V14`;
     }
     ticks.setAttribute('viewBox', `0 0 ${width} 15`);
@@ -309,7 +318,8 @@
       }
     });
 
-    // The needle runs past 12 and comes back on at the start, like the reel.
+    // The needle runs past the last project and comes back on at the start,
+    // like the reel.
     // On a project its stem lies exactly over the tick (drawn on whole
     // pixels); between projects it slides from one to the next.
     const at = mod(pos, N);
@@ -539,7 +549,7 @@
 
   // The reel has come to rest on a card.
   function restFilms() {
-    if (infoOpen || root.classList.contains('is-loading') || root.classList.contains('is-moving') || document.hidden) return;
+    if (infoOpen || projectOpen || root.classList.contains('is-loading') || root.classList.contains('is-moving') || document.hidden) return;
     const index = mod(Math.round(pos), N);
     films.forEach((video, i) => {
       if (!video || i === index) return;
@@ -722,6 +732,10 @@
       if (e.key === 'Escape') closeInfo();
       return;
     }
+    if (projectOpen) {
+      if (e.key === 'Escape') closeProject();
+      return;
+    }
     const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
     if (!step || e.metaKey || e.ctrlKey || e.altKey) return;
     e.preventDefault();
@@ -767,23 +781,32 @@
     email.classList.add('is-wrapped');
   }
 
-  // Every row turns in its turn down the panel; rows level with each other
-  // turn together.
-  function turnInfoIn() {
+  /* Rows turn in their turn down a sheet (Info, a project's page) like the
+     title's slats; rows level with each other turn together, and pictures
+     open from the top. Where a row is, is measured from the sheet's top, so
+     it holds while the sheet is still sliding in. */
+  function turnRowsIn(sheet, rows, delay) {
     if (reduceMotion.matches) return;
-    const rows = [...info.querySelectorAll('.info__name, .info__word, .info__list dt, .info__list dd, .info__contact > *')];
-    const top = (row) => Math.round(row.getBoundingClientRect().top);
+    const from = sheet.getBoundingClientRect().top;
+    const top = (row) => Math.round(row.getBoundingClientRect().top - from);
     const levels = [...new Set(rows.map(top))].sort((a, b) => a - b);
-    const edge = 'perspective(600px) rotateX(-90deg)';
     rows.forEach((row) => {
+      const at = delay + levels.indexOf(top(row)) * ROW_STAGGER;
       row.getAnimations().forEach((a) => a.cancel());
-      row.animate([{ transform: edge }, { transform: 'none' }], {
-        duration: SLAT_IN,
-        delay: 250 + levels.indexOf(top(row)) * ROW_STAGGER,
-        easing: 'cubic-bezier(0.3, 1.45, 0.6, 1)',
-        fill: 'backwards',
-      });
+      if (row.classList.contains('project__still')) {
+        row.animate([{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0)' }], {
+          duration: 1000, delay: at, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards',
+        });
+      } else {
+        row.animate([{ transform: 'perspective(600px) rotateX(-90deg)' }, { transform: 'none' }], {
+          duration: SLAT_IN, delay: at, easing: 'cubic-bezier(0.3, 1.45, 0.6, 1)', fill: 'backwards',
+        });
+      }
     });
+  }
+
+  function turnInfoIn() {
+    turnRowsIn(info, [...info.querySelectorAll('.info__name, .info__word, .info__list dt, .info__list dd, .info__contact > *')], ROWS_AFTER);
   }
 
   function openInfo() {
@@ -820,6 +843,185 @@
   infoCloser.addEventListener('click', closeInfo);
   document.querySelector('.info-scrim').addEventListener('click', closeInfo);
 
+  /* ---------- Project page ---------- */
+
+  /* A press on the title opens its project's page over the whole screen, up
+     from the bottom with Info's motion, the reel dimming behind it, its rows
+     turning in as Info's do. On the left, staying put: the number, title,
+     meta, synopsis and credits; on the right, scrolling by: the stills, then
+     the next project. Close or Esc closes it. The films wait while it is
+     open. */
+  const SYNOPSIS = 'Lorem ipsum dolor sit amet consectetur. Varius lacus ut enim diam quis. Rhoncus tincidunt tristique aliquam donec. Diam dolor morbi sed velit sed dignissim pellentesque amet natoque.';
+  const CREDITS = [['Role', 'Director'], ['Client', 'Lorem ipsum'], ['Tools', 'Runway'], ['Music', 'Lorem ipsum']];
+  const CROPS = [[1, '50% 50%'], [2.2, '22% 62%'], [2.6, '80% 45%'], [1.6, '60% 30%']]; // [zoom, at]
+
+  const projectPage = document.querySelector('.project');
+  const projectScroll = projectPage.querySelector('.project__scroll');
+  const projectCloser = projectPage.querySelector('.project__close');
+  let projectOpen = false;
+  let projectWatch = null;   // turns rows in as they scroll up
+
+  function make(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text != null) el.textContent = text;
+    return el;
+  }
+
+  // Word by word, so the lines can turn in one after another.
+  const wordsOf = (text) => text.split(' ').flatMap((word, i) => (i ? [' ', make('span', 'project__word', word)] : [make('span', 'project__word', word)]));
+
+  function projectList(rows) {
+    const list = make('dl', 'project__list label');
+    rows.forEach(([key, value]) => {
+      const row = make('div');
+      const dd = make('dd');
+      dd.append(value);
+      row.append(make('dt', null, key), dd);
+      list.append(row);
+    });
+    return list;
+  }
+
+  // The project's stills; until it has them, its poster and closer crops of
+  // it (a grey card without one).
+  function stillsOf(project) {
+    const poster = project.media && (project.media.poster || (/\.(jpe?g|png|webp)$/i.test(project.media.src) ? project.media.src : null));
+    const pictures = project.stills ? project.stills.map((src) => [src]) : CROPS.map((crop) => [poster, ...crop]);
+    return pictures.map(([src, zoom = 1, at]) => {
+      const box = make('div', 'project__still project__block');
+      if (src) {
+        const img = make('img');
+        img.src = src;
+        img.alt = '';
+        if (zoom !== 1) Object.assign(img.style, { transform: `scale(${zoom})`, transformOrigin: at });
+        box.append(img);
+      }
+      return box;
+    });
+  }
+
+  function fillProject(i) {
+    const project = PROJECTS[i];
+    const heading = make('h2', 'project__title');
+    heading.append(...wordsOf(project.title));
+    const synopsis = make('p', 'project__synopsis');
+    synopsis.append(...wordsOf(project.synopsis || SYNOPSIS));
+    const text = make('div', 'project__text');
+    text.append(synopsis, projectList(project.credits || CREDITS));
+    const side = make('div', 'project__side');
+    side.append(
+      make('span', 'label project__number project__turn', `${pad(i + 1)} / ${pad(N)}`),
+      heading,
+      projectList(META.map((key) => [key === 'youtube' ? 'YouTube' : key[0].toUpperCase() + key.slice(1), metaValue(project, key)])),
+      text,
+    );
+    const n = mod(i + 1, N);
+    const next = make('button', 'project__next project__block');
+    next.type = 'button';
+    next.append(make('span', 'label project__turn', 'Next project'), make('span', 'project__next-title project__turn', PROJECTS[n].title));
+    next.addEventListener('click', () => turnProjectTo(n));
+    const media = make('div', 'project__media');
+    media.append(...stillsOf(project), next);
+    const grid = make('div', 'project__grid');
+    grid.append(side, media);
+    projectScroll.replaceChildren(grid);
+    projectScroll.scrollTop = 0;
+    fitWords(heading);
+  }
+
+  // A heading whose longest word is wider than its column is set smaller.
+  function fitWords(box) {
+    box.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(box).fontSize);
+    for (let k = 0; k < 20 && box.scrollWidth > box.clientWidth + 0.5; k++) {
+      size *= 0.95;
+      box.style.fontSize = `${size}px`;
+    }
+  }
+
+  // What is on the page's first screen turns in now; the rest as it scrolls
+  // up.
+  function turnProjectIn(delay) {
+    const room = projectPage.clientHeight;
+    const from = projectPage.getBoundingClientRect().top;
+    const below = (el) => el.getBoundingClientRect().top - from >= room * 0.92;
+    const rows = [...projectScroll.querySelectorAll('.project__word, .project__turn, .project__list dt, .project__list dd, .project__still')]
+      .filter((row) => row.getBoundingClientRect().top - from < room);
+    turnRowsIn(projectPage, rows, delay);
+    if (projectWatch) projectWatch.disconnect();
+    if (reduceMotion.matches) return;
+    projectWatch = new IntersectionObserver((entries) => entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      projectWatch.unobserve(entry.target);
+      entry.target.classList.remove('is-waiting');
+      const block = entry.target;
+      turnRowsIn(projectPage, block.matches('.project__still') ? [block] : [...block.querySelectorAll('.project__turn')], 0);
+    }), { root: projectScroll, rootMargin: '0px 0px -8% 0px' });
+    projectScroll.querySelectorAll('.project__block').forEach((block) => {
+      if (!below(block)) return;
+      block.classList.add('is-waiting');
+      projectWatch.observe(block);
+    });
+  }
+
+  function openProject(i) {
+    if (projectOpen) return;
+    projectOpen = true;
+    stopFilm();
+    hero.inert = true;
+    fillProject(i);
+    root.classList.add('is-project');
+    turnProjectIn(ROWS_AFTER);
+    projectCloser.focus({ preventScroll: true });
+    aimCursor();
+  }
+
+  function closeProject() {
+    if (!projectOpen) return;
+    projectOpen = false;
+    if (projectWatch) projectWatch.disconnect();
+    const focused = projectPage.contains(document.activeElement);
+    hero.inert = false;
+    root.classList.remove('is-project');
+    if (focused) title.focus({ preventScroll: true });
+    restFilms();
+    aimCursor();
+  }
+
+  // Next project: the page turns to it, and the reel behind goes there too,
+  // so closing lands on it.
+  let turningProject = false;
+  async function turnProjectTo(n) {
+    if (turningProject) return;
+    turningProject = true;
+    goTo(n);
+    const out = projectScroll.animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduceMotion.matches ? 0 : 250, fill: 'forwards' });
+    await out.finished;
+    turningProject = false;
+    out.cancel();
+    if (!projectOpen) return; // closed meanwhile
+    fillProject(n);
+    turnProjectIn(0);
+    projectCloser.focus({ preventScroll: true });
+  }
+
+  // A press on the title (or Enter on it) opens its page; not while the reel
+  // runs.
+  const projectReady = () => !['is-moving', 'is-loading', 'is-info'].some((name) => root.classList.contains(name));
+  title.addEventListener('click', (e) => {
+    if (e.target.closest('.title__text') && projectReady()) openProject(current);
+  });
+  title.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && projectReady()) {
+      e.preventDefault();
+      openProject(current);
+    }
+  });
+  projectCloser.addEventListener('click', closeProject);
+  // Scrolled down, the page's bar frosts over what passes under it.
+  projectScroll.addEventListener('scroll', () => projectPage.classList.toggle('is-scrolled', projectScroll.scrollTop > 24), { passive: true });
+
   /* ---------- Cursor ---------- */
 
   /* With a mouse, over the reel a disc that says Drag (a dot over the Sound
@@ -836,7 +1038,7 @@
   let cursorLast = 0;
 
   function stateAt(el) {
-    if (infoOpen) return '';
+    if (infoOpen || projectOpen) return '';
     if (dragging && dragging.moved) return 'drag';
     if (!(el instanceof Element) || !el.closest('.reel')) return '';
     return el.closest('.reel__sound') ? 'dot' : 'drag';

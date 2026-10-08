@@ -27,6 +27,10 @@
   --title-lines: 1;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Sheets (Info from the side, a project's page from the bottom) come in
+     softly and glide into place, and go back the same way. */
+  --ease-rise: cubic-bezier(0.25, 0.1, 0.1, 1);
+  --ease-drop: cubic-bezier(0.6, 0, 0.4, 1);
 }
 
 *,
@@ -318,6 +322,32 @@ a {
   white-space: nowrap;
 }
 
+/* A press on the title opens its page; under the pointer it turns pink like
+   Watch and Info. */
+.title__text:not(.is-slat) {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+@media (hover: hover) {
+  .title__text:not(.is-slat):hover {
+    color: var(--color-needle);
+  }
+}
+
+.title:focus-visible .title__text:not(.is-slat) {
+  color: var(--color-needle);
+}
+
+.title:focus-visible {
+  outline: none;
+}
+
+.title:focus-visible .title__text {
+  outline: 1px solid var(--color-needle);
+  outline-offset: 4px;
+}
+
 /* Meta rows: muted label, bright value, both set right in 86px columns, a
    gutter from the title's box. The block's foot is 3px above the title's and
    its top rises above the title's, but it takes no height in the row (the
@@ -373,7 +403,8 @@ a {
   position: relative;
   height: 37px;
   margin-top: 38px;
-  --col: calc((100% - 11 * var(--gutter)) / 12);
+  /* One slot a project (reel.js sets --count), gutters between. */
+  --col: calc((100% - (var(--count, 12) - 1) * var(--gutter)) / var(--count, 12));
 }
 
 .timeline__ticks {
@@ -385,8 +416,8 @@ a {
   overflow: visible;
 }
 
-/* The needle runs off the end of the rule after 12 and back on at the start,
-   so its layer clips at the rule's ends; its stem stops where the long ticks
+/* The needle runs off the end of the rule after the last project and back on
+   at the start, so its layer clips at the rule's ends; its stem stops where the long ticks
    do (14px down the rule). */
 .timeline__needles {
   position: absolute;
@@ -455,13 +486,13 @@ a {
   background: rgba(0, 0, 0, 0.45);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.45s ease, visibility 0s 0.45s;
+  transition: opacity 0.7s ease, visibility 0s 0.7s;
 }
 
 .is-info .info-scrim {
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.9s ease;
 }
 
 .info {
@@ -482,13 +513,13 @@ a {
   backdrop-filter: blur(24px);
   transform: translateX(100%);
   visibility: hidden;
-  transition: transform 0.45s cubic-bezier(0.7, 0, 0.84, 0), visibility 0s 0.45s;
+  transition: transform 0.7s var(--ease-drop), visibility 0s 0.7s;
 }
 
 .is-info .info {
   transform: none;
   visibility: visible;
-  transition: transform 0.8s var(--ease-out);
+  transition: transform 1.1s var(--ease-rise);
 }
 
 /* Close, where Info is on the page. */
@@ -592,9 +623,247 @@ a {
   overflow-wrap: anywhere;
 }
 
+/* ---------- Project page ---------- */
+
+/* A project's page comes up from the bottom over the whole screen with
+   Info's motion, and the reel dims behind it as it comes (reel.js fills,
+   opens and closes it). */
+.project-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.7s ease, visibility 0s 0.7s;
+}
+
+.is-project .project-scrim {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.9s ease;
+}
+
+.project {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.7s var(--ease-drop), visibility 0s 0.7s;
+}
+
+.is-project .project {
+  transform: none;
+  visibility: visible;
+  transition: transform 1.1s var(--ease-rise);
+}
+
+.project__scroll {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The brand and Close where the brand and Info are on the page; scrolled
+   down, it frosts over what passes under it. */
+.project__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40px var(--margin) 0;
+  pointer-events: none;
+}
+
+.project__bar > * {
+  pointer-events: auto;
+}
+
+.project__bar::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -16px;
+  z-index: -1;
+  background: rgba(23, 23, 23, 0.82);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.project.is-scrolled .project__bar::before {
+  opacity: 1;
+}
+
+.project__close {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Columns 1–5 stay put while 7–12 scroll by. */
+.project__grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--gutter);
+  padding: 0 var(--margin);
+}
+
+.project__side {
+  grid-column: 1 / span 5;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100svh;
+  padding: 104px 0 40px;
+}
+
+.project__number {
+  color: var(--color-muted);
+}
+
+.project__title {
+  margin: 16px 0 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(40px, 4.375vw, 96px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-variant-numeric: lining-nums;
+}
+
+.project__word,
+.project__turn {
+  display: inline-block;
+}
+
+/* Rows like the meta's: the name muted in 86px, the value bright. */
+.project__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 32px 0 0;
+}
+
+.project__list div {
+  display: grid;
+  grid-template-columns: 86px auto;
+  gap: 15px;
+}
+
+.project__list dt {
+  color: var(--color-muted);
+}
+
+.project__list dd {
+  margin: 0;
+}
+
+.project__text {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.project__text .project__list {
+  margin: 0;
+}
+
+.project__synopsis {
+  margin: 0;
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: calc(21 / 16);
+  letter-spacing: 0.02em;
+}
+
+.project__media {
+  grid-column: 7 / span 6;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gutter);
+  padding-top: 104px;
+}
+
+.project__still {
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: var(--color-placeholder);
+}
+
+.project__still img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The next project's title, pink under the pointer like Watch. */
+.project__next {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin: 104px 0 0;
+  padding: 0 0 120px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.project__next .label {
+  color: var(--color-muted);
+}
+
+.project__next-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(32px, 3.125vw, 64px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-variant-numeric: lining-nums;
+  transition: color 0.2s;
+}
+
+.project__next:is(:hover, :focus-visible) .project__next-title {
+  color: var(--color-needle);
+}
+
+/* Below the screen until it scrolls up (reel.js). */
+.is-waiting :is(.project__turn, .project__word),
+.project__still.is-waiting {
+  visibility: hidden;
+}
+
+/* Without motion, Info and a page are simply there. */
 @media (prefers-reduced-motion: reduce) {
   .info,
-  .is-info .info {
+  .is-info .info,
+  .project,
+  .is-project .project {
     transform: none;
     transition: visibility 0s;
   }
@@ -851,9 +1120,15 @@ a {
   .info {
     width: calc(8 * var(--col) + 7 * var(--gutter) + var(--margin));
   }
+
+  .project__side,
+  .project__media {
+    grid-column: span 6;
+  }
 }
 
-/* Phones: tighter grid, and the title may take two lines. */
+/* Phones: tighter grid, the title may take two lines, and a project's page
+   is one column, the text first. */
 @media (max-width: 639px) {
   :root {
     --margin: 20px;
@@ -906,5 +1181,29 @@ a {
 
   .info__lists {
     margin-top: 48px;
+  }
+
+  .project__bar {
+    padding-top: 24px;
+  }
+
+  .project__side,
+  .project__media {
+    grid-column: 1 / -1;
+  }
+
+  .project__side {
+    position: static;
+    height: auto;
+    padding: 72px 0 0;
+  }
+
+  .project__media {
+    padding-top: 48px;
+  }
+
+  .project__next {
+    margin-top: 72px;
+    padding-bottom: 72px;
   }
 }
