@@ -33,7 +33,12 @@
       // From 0:56: the eruption to "Heard in Perth".
       media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5, fps: 30 },
     },
-    { title: 'Consectetur', type: 'Feature',    year: '2025', runtime: '92:00' },
+    {
+      title: 'Consectetur', type: 'AI film', year: '2025', runtime: '00:42',
+      // From the start (the whole film is 42 seconds): the closed eyes to the
+      // dune's crest at sunset. No name or YouTube link yet.
+      media: { src: 'assets/films/desert.mp4', poster: 'assets/films/desert.jpg', volume: 0.95, fps: 24 },
+    },
     { title: 'Adipiscing',  type: 'Short film', year: '2025', runtime: '11:20' },
     { title: 'Elit sed',    type: 'Promo',      year: '2024', runtime: '00:30' },
     { title: 'Tempor',      type: 'Short film', year: '2024', runtime: '07:05' },
