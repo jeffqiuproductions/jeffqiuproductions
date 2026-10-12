@@ -1,9 +1,9 @@
 /* Jeff Production — first screen.
-   Built from the 1280 × 832 Figma frame (home-page, node 78:2). The frame
-   sits on a 12-column grid: 40px margins, 16px gutters, 85.33px columns. The
-   slices fill the row between the margins and the meta block takes columns
-   11–12, so the layout here is written against that grid rather than against
-   frame pixels. */
+   Built from the 1280 × 832 Figma frame (home-page, node 1:5). The frame sits
+   on a 12-column grid: 40px margins, 16px gutters, 85.33px columns. The front
+   card spans columns 3–10, the meta block columns 11–12 and every timeline
+   number sits over the centre of a column, so the layout here is written
+   against that grid rather than against frame pixels. */
 
 :root {
   --color-bg: #171717;
@@ -17,6 +17,8 @@
 
   --margin: 40px;
   --gutter: 16px;
+  /* Columns the front card spans (reel.js reads it). */
+  --front-cols: 8;
 
   /* The title is 64px on a 70px line in the 1280 frame and scales with
      the window. */
@@ -90,8 +92,8 @@ a {
 /* ---------- Screen ---------- */
 
 /* Top bar, the reel in whatever height is left, the title block at the bottom.
-   In the frame the 486px slices sit centred between the top bar and the
-   title (starts at 722). */
+   In the frame the reel's 440px card sits centred between the top bar (ends
+   at 59) and the title (starts at 647). */
 .hero {
   position: relative;
   display: flex;
@@ -140,32 +142,24 @@ a {
   cursor: grabbing;
 }
 
-/* The slices across the grid, centred in the reel; reel.js sizes the row
-   (--along by --cross), makes every card the open slice's size (--open) and
-   cuts each to its share. */
+/* reel.js sets the perspective and the card size to fit the window. */
 .reel__stage {
   position: absolute;
-  left: var(--margin);
-  top: 50%;
-  width: var(--along);
-  height: var(--cross);
-  transform: translateY(-50%);
+  inset: 0;
+  perspective-origin: 50% 50%;
 }
 
 .reel__card {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: var(--open);
-  height: 100%;
+  left: 50%;
+  top: 50%;
+  width: var(--card-w, 794.67px);
+  height: var(--card-h, 440px);
+  margin: calc(var(--card-h, 440px) / -2) 0 0 calc(var(--card-w, 794.67px) / -2);
   overflow: hidden;
   background: #000;
+  backface-visibility: hidden;
   will-change: transform;
-  transition: filter 0.3s;
-}
-
-.reel__card:not(.is-front):hover {
-  filter: brightness(1.3);
 }
 
 /* Until a project has its picture or film, the card is the grey placeholder. */
@@ -173,7 +167,7 @@ a {
   background: var(--color-placeholder);
 }
 
-/* The shade a sliver darkens under (reel.js sets it). */
+/* The shade a side card darkens under as it turns away (reel.js sets it). */
 .reel__card::after {
   content: "";
   position: absolute;
@@ -182,24 +176,9 @@ a {
   pointer-events: none;
 }
 
-/* A sliver's number and title, up its middle from 24 above its foot; it
-   fades as the slice opens (reel.js). */
-.reel__label {
-  position: absolute;
-  left: 50%;
-  bottom: 24px;
-  z-index: 1;
-  display: flex;
-  gap: 12px;
-  color: var(--color-ink);
-  white-space: nowrap;
-  writing-mode: vertical-rl;
-  transform: translateX(-50%) rotate(180deg);
-  pointer-events: none;
-}
-
-.reel__number {
-  color: var(--color-needle);
+.reel__card[hidden] {
+  display: block;
+  visibility: hidden;
 }
 
 .reel__media {
@@ -245,16 +224,33 @@ a {
 }
 
 /* The playing film's timecode at the bottom right, on Sound's line, hours to
-   frames (reel.js keeps it). */
+   frames, after a pink dot that beats like a recording light (reel.js keeps
+   it). */
 .reel__time {
   position: absolute;
   right: 16px;
   bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s;
+}
+
+.reel__time::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-needle);
+  animation: reel-rec 1.2s ease-in-out infinite;
+}
+
+@keyframes reel-rec {
+  50% { opacity: 0.2; }
 }
 
 /* How far into it a film has got, a pink line along the card's foot; it
@@ -290,33 +286,7 @@ a {
   outline-offset: 6px;
 }
 
-/* A phone: the slices stacked down the reel, the open one tall, the labels
-   across. */
-.reel.is-stacked {
-  touch-action: none;
-}
-
-.reel.is-stacked .reel__stage {
-  top: 16px;
-  width: var(--cross);
-  height: var(--along);
-  transform: none;
-}
-
-.reel.is-stacked .reel__card {
-  width: 100%;
-  height: var(--open);
-}
-
-.reel.is-stacked .reel__label {
-  left: 16px;
-  top: 50%;
-  bottom: auto;
-  writing-mode: horizontal-tb;
-  transform: translateY(-50%);
-}
-
-/* ---------- Title and meta ---------- */
+/* ---------- Title, meta, timeline ---------- */
 
 .hero__foot {
   display: grid;
@@ -379,7 +349,7 @@ a {
 }
 
 /* Meta rows: muted label, bright value, both set right in 86px columns, a
-   gutter from the title's box. The block's foot is 8px above the title's and
+   gutter from the title's box. The block's foot is 3px above the title's and
    its top rises above the title's, but it takes no height in the row (the
    negative top margin): the reel centres on the gap between the top bar and
    the title, as in the frame. */
@@ -388,7 +358,7 @@ a {
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
-  margin: -200px 0 8px var(--gutter);
+  margin: -200px 0 3px var(--gutter);
   text-align: right;
 }
 
@@ -425,6 +395,81 @@ a {
   top: 0;
   left: 0;
   right: 0;
+}
+
+/* Timeline: 1px rule with ticks, 15px high; the numbers 21px below its top. */
+.timeline {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 37px;
+  margin-top: 38px;
+  /* One slot a project (reel.js sets --count), gutters between. */
+  --col: calc((100% - (var(--count, 12) - 1) * var(--gutter)) / var(--count, 12));
+}
+
+.timeline__ticks {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 15px;
+  overflow: visible;
+}
+
+/* The needle runs off the end of the rule after the last project and back on
+   at the start, so its layer clips at the rule's ends; its stem stops where the long ticks
+   do (14px down the rule). */
+.timeline__needles {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -14px;
+  height: 28px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.needle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  will-change: transform;
+}
+
+.timeline__labels {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline__labels li {
+  position: absolute;
+  top: 21px;
+  left: calc(var(--col) / 2 + var(--i) * (var(--col) + var(--gutter)));
+  transform: translateX(-50%);
+}
+
+.timeline__labels button {
+  display: block;
+  width: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.24px;
+  text-align: center;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.timeline__labels button:hover,
+.timeline__labels button[aria-current="true"] {
+  color: var(--color-ink);
 }
 
 /* ---------- Info ---------- */
@@ -918,7 +963,8 @@ a {
 /* While loading, the page waits under the loader, which brings it in. */
 .is-loading .hero__bar,
 .is-loading .reel__stage,
-.is-loading .meta dt {
+.is-loading .meta dt,
+.is-loading .timeline {
   opacity: 0;
 }
 
@@ -1040,10 +1086,12 @@ a {
 
 /* ---------- Smaller windows ---------- */
 
-/* Tablets: the meta moves under the title, in a row. */
+/* Tablets: the card takes ten columns and the meta moves under the title,
+   in a row. */
 @media (max-width: 1023px) {
   :root {
     --margin: 32px;
+    --front-cols: 10;
     --title-size: clamp(40px, 6.64vw, 64px);
   }
 
@@ -1065,6 +1113,10 @@ a {
     gap: 12px;
   }
 
+  .timeline {
+    margin-top: 32px;
+  }
+
   .info {
     width: calc(8 * var(--col) + 7 * var(--gutter) + var(--margin));
   }
@@ -1075,8 +1127,8 @@ a {
   }
 }
 
-/* Phones: tighter grid, the slices stacked (reel.js), the title may take two
-   lines, and a project's page is one column, the text first. */
+/* Phones: tighter grid, the title may take two lines, and a project's page
+   is one column, the text first. */
 @media (max-width: 639px) {
   :root {
     --margin: 20px;
@@ -1110,6 +1162,11 @@ a {
 
   .hero__foot {
     padding-bottom: 24px;
+  }
+
+  .timeline__labels button {
+    width: 24px;
+    font-size: 11px;
   }
 
   .info {

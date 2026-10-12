@@ -1,5 +1,5 @@
-/* Jeff Production — the reel and everything that follows it: the slices,
-   the title and the meta rows, the films, Info and a project's page. */
+/* Jeff Production — the reel and everything that follows it: the title, the
+   meta rows, the timeline needle and numbers. */
 
 (() => {
   /* The projects; the ones still called Lorem ipsum are placeholders. A
@@ -41,29 +41,33 @@
     },
     { title: 'Adipiscing',  type: 'Short film', year: '2025', runtime: '11:20' },
     { title: 'Elit sed',    type: 'Promo',      year: '2024', runtime: '00:30' },
+    { title: 'Tempor',      type: 'Short film', year: '2024', runtime: '07:05' },
+    { title: 'Incididunt',  type: 'Commercial', year: '2024', runtime: '01:00' },
   ];
 
   const N = PROJECTS.length;
   const META = ['type', 'year', 'runtime', 'youtube'];
 
-  /* In the frame (home-page, 78:2) the projects stand side by side across the
-     grid as slices of their pictures: the current one open, 760 × 486, the
-     others 72px slivers, a gutter between. */
-  const THIN = 0.06;            // a sliver's share of the row (72 of 1200)
-  const OPEN_RATIO = 760 / 486; // the open slice at most this wide for its height
-  const ROOM = 90;              // px kept clear above and below the slices at least
-  const STACK_THIN = 26;        // px a sliver is tall on a phone, where they stack
-  const DIM = 0.3;              // how dark a sliver goes
-  const DRAG_UNIT = 140;        // px of drag a slice
-  const WHEEL_START = 20;       // wheel / trackpad pixels before the first slice
-  const WHEEL_STEP = 400;       // …and for each slice after it, in one gesture
-  const WHEEL_MAX = 3;          // slices one gesture can move at most
+  /* In the frame the side card's far edge meets the window edge at 400.63
+     of its 440px height: that fixes the angle and the perspective. */
+  const FAR_EDGE = 400.63 / 440;
+  const CARD_RATIO = 440 / 794;  // the front card's height to its width
+  const MIN_ROOM = 48;          // least space above and below the card
+  const SIDE_CARDS = 3;         // cards laid out on each side of the front one
+  const WHEEL_START = 20;       // wheel / trackpad pixels before the first card
+  const WHEEL_STEP = 400;       // …and for each card after it, in one gesture
+  const WHEEL_MAX = 3;          // cards one gesture can move at most
   const NUDGE = 0.12;           // a smaller push than this snaps back
   const GLIDE = 7;              // spring rate gliding to a card (lower is softer)
   const FOLLOW = 24;            // spring rate following a drag
+  const DEPTH_FADE = 0.3;       // what is left of a card's light where the
+                                // first side card meets the window edge; it
+                                // darkens on the same way the deeper it goes
   const VOLUME = 0.8;           // a film's sound is faded up to this, or
                                 // to its own `volume`
   const FPS = 24;               // a film's frame rate, unless it has its own
+  const TICKS = 4;              // ticks between columns on the 12-column grid;
+                                // the timeline keeps their spacing
   const SLATS = 6;              // rows a title turns in, like a blind's slats
   const META_SLATS = 2;         // …and a meta value
   const SLAT_OUT = 300;         // ms for a slat to turn edge on
@@ -74,9 +78,12 @@
                                 // rows turn in
   const EMAIL_MIN = 14;         // px Info's email shrinks to before it wraps
   const CURSOR_FOLLOW = 20;     // spring rate the cursor eases after the mouse
-  const CURSOR_STRETCH = 0.08;  // how far it stretches for each slice a second
+  const CURSOR_STRETCH = 0.08;  // how far it stretches for each card a second
                                 // the reel runs at…
   const CURSOR_STRETCH_MAX = 0.4; // …and at most
+
+  const MUTED = '#8b8984';
+  const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const root = document.documentElement;
   const hero = document.querySelector('.hero');
@@ -84,18 +91,15 @@
   const stage = reel.querySelector('.reel__stage');
   const title = document.querySelector('.title');
   const metaValues = Object.fromEntries(META.map((key) => [key, document.querySelector(`[data-meta="${key}"]`)]));
+  const timeline = document.querySelector('.timeline');
+  const ticks = timeline.querySelector('.timeline__ticks');
+  const needles = [...timeline.querySelectorAll('.needle')];
+  const labels = timeline.querySelector('.timeline__labels');
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
   const mod = (n, m) => ((n % m) + m) % m;
+  const wrap = (d) => mod(d + N / 2, N) - N / 2;   // nearest way round the loop
   const pad = (n) => String(n).padStart(2, '0');
-  const within = (t) => Math.min(Math.max(t, 0), N - 1);   // the row stops at both ends
-
-  function make(tag, className, text) {
-    const el = document.createElement(tag);
-    if (className) el.className = className;
-    if (text != null) el.textContent = text;
-    return el;
-  }
 
   /* ---------- Build ---------- */
 
@@ -140,81 +144,200 @@
         card.append(toggle, time, played);
       }
     }
-    // Its number and title up the sliver.
-    const label = make('span', 'reel__label label');
-    label.setAttribute('aria-hidden', 'true');
-    label.append(make('span', 'reel__number', pad(i + 1)), make('span', null, project.title));
-    card.append(label);
     stage.append(card);
     return card;
   });
-  const labels = cards.map((card) => card.querySelector('.reel__label'));
+
+  timeline.style.setProperty('--count', N);
+  const buttons = PROJECTS.map((project, i) => {
+    const item = document.createElement('li');
+    item.style.setProperty('--i', i);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = pad(i + 1);
+    button.setAttribute('aria-label', `${pad(i + 1)} ${project.title}`);
+    button.addEventListener('click', () => goTo(i));
+    item.append(button);
+    labels.append(item);
+    return button;
+  });
 
   /* ---------- Geometry ---------- */
 
-  /* The slices fill the row between the margins: the slivers THIN of it,
-     the open one the rest, at most OPEN_RATIO wide for its height and ROOM
-     clear of the top bar and the title. On a phone they stack down the
-     screen, the open one tall. */
+  /* The reel is a strip of cards folded at both sides of the front card: flat
+     across the middle, then turning away into the screen. A card's two ends
+     sit on the strip and the card runs straight between them, so on its way
+     round a fold it cuts the corner (and narrows a little) instead of bending.
+     The cards are spaced so the gap between them on screen is always the
+     gutter, however far round the fold they have gone. */
   let geo = null;
 
   function measure() {
     const style = getComputedStyle(root);
     const margin = parseFloat(style.getPropertyValue('--margin'));
     const gutter = parseFloat(style.getPropertyValue('--gutter'));
+    const frontCols = parseFloat(style.getPropertyValue('--front-cols'));
     const width = reel.clientWidth;
     const room = reel.clientHeight;
-    const across = width >= 640;
 
-    const along = across ? width - 2 * margin : room - 32;
-    const thin = across ? Math.max(along * THIN, 32) : STACK_THIN;
-    const open = along - (N - 1) * (gutter + thin);
-    // A tablet stands upright: there the open slice may be as tall as it is wide.
-    const ratio = width >= 1024 ? OPEN_RATIO : 1;
-    const cross = across ? Math.max(Math.min(open / ratio, room - 2 * ROOM), 120) : width - 2 * margin;
-    geo = { across, thin, open, gap: gutter };
+    const col = (width - 2 * margin - 11 * gutter) / 12;
+    let w = frontCols * col + (frontCols - 1) * gutter;
+    let h = w * CARD_RATIO;
+    if (h > room - 2 * MIN_ROOM) {
+      h = Math.max(room - 2 * MIN_ROOM, 120);
+      w = h / CARD_RATIO;
+    }
 
-    reel.classList.toggle('is-stacked', !across);
-    Object.entries({ '--along': along, '--cross': cross, '--open': open })
-      .forEach(([key, value]) => reel.style.setProperty(key, `${value}px`));
+    // Fold just past the front card's edge; a side card's far edge lands on
+    // the window edge at FAR_EDGE of its height.
+    const fold = w / 2 + gutter;
+    const cos = Math.min(Math.max((width / 2 / FAR_EDGE - fold) / w, 0.08), 0.92);
+    const sin = Math.sqrt(1 - cos * cos);
+    const perspective = (w * sin) / (1 / FAR_EDGE - 1);
 
+    stage.style.perspective = `${perspective}px`;
+    stage.style.setProperty('--card-w', `${w}px`);
+    stage.style.setProperty('--card-h', `${h}px`);
+
+    // Screen distance between the front card's centre and the next card's:
+    // how far a drag moves the reel by one card.
+    const nextX = fold + (w / 2) * cos;
+    const nextZ = (w / 2) * sin;
+    const dragUnit = (nextX * perspective) / (perspective + nextZ);
+
+    // The timeline is cut into one slot a project, gutters between, like
+    // the grid's columns; its ticks keep the 12-column grid's spacing.
+    const lineWidth = timeline.clientWidth;
+    const lineCol = (lineWidth - (N - 1) * gutter) / N;
+    const gridUnit = (lineWidth - 11 * gutter) / 12 + gutter;
+    const ticksPer = Math.max(2, Math.round(((lineCol + gutter) / gridUnit) * TICKS));
+    geo = { w, gap: gutter, fold, cos, sin, perspective, dragUnit, line: { width: lineWidth, col: lineCol, unit: lineCol + gutter, ticks: ticksPer } };
+
+    drawTicks();
     fitTitle(title.lastElementChild);
     if (infoOpen) fitEmail();
     if (projectOpen) fitWords(projectPage.querySelector('.project__title'));
     render();
   }
 
+  /* Timeline rule: a long tick over each slot's centre (one per project),
+     short ones between, all on whole pixels so they stay sharp. */
+  const tickX = (n) => Math.round(n) + 0.5;
+
+  function drawTicks() {
+    const { width, col, unit, ticks: per } = geo.line;
+    const step = unit / per;
+    let short = '';
+    let long = '';
+    for (let j = -Math.floor(col / 2 / step); ; j++) {
+      const at = col / 2 + j * step;
+      if (at >= width) break;
+      if (at < 0) continue;
+      if (mod(j, per) !== 0) short += `M${tickX(at)} 1V7`;
+      else long += `M${tickX(at)} 1V14`;
+    }
+    ticks.setAttribute('viewBox', `0 0 ${width} 15`);
+    ticks.innerHTML =
+      `<path d="M0 0.5H${width}" stroke="${MUTED}"/>` +
+      `<path d="${short}" stroke="${MUTED}"/>` +
+      `<path d="${long}" stroke="${MUTED}"/>`;
+  }
+
   /* ---------- Render ---------- */
 
-  let pos = 0;        // where the row is, in slices (any real number)
+  let pos = 0;        // where the reel is, in cards (any real number)
   let target = 0;     // where it is going
   let velocity = 0;
   let current = -1;   // project shown in the title
+  const shades = [];  // each card's depth shade, as last set
   let last = 0;
 
-  const nearest = () => within(Math.round(pos));
+  // A point s along the strip, in 3D…
+  function onStrip(s) {
+    const { fold, cos, sin } = geo;
+    const a = Math.abs(s);
+    if (a <= fold) return [s, 0];
+    const t = a - fold;
+    return [Math.sign(s) * (fold + t * cos), -t * sin];
+  }
 
-  // Each slice as wide as it is open, a gutter after the last; each is the
-  // open slice's size, cut round its middle to its share. A sliver darkens
-  // and its label fades as it opens.
+  // …where it lands across the screen (from the middle, in the stage's
+  // perspective), and back: the same on the flat part; round a fold the
+  // strip runs away into the screen and closes up.
+  function project(s) {
+    const [x, z] = onStrip(s);
+    return (x * geo.perspective) / (geo.perspective - z);
+  }
+
+  function unproject(x) {
+    const { fold, cos, sin, perspective } = geo;
+    const a = Math.abs(x);
+    if (a <= fold) return x;
+    const room = perspective * cos - a * sin;   // gone at the vanishing point
+    return room > 0 ? Math.sign(x) * (fold + (perspective * (a - fold)) / room) : null;
+  }
+
   function render() {
-    const { across, thin, open, gap } = geo;
-    const front = nearest();
-    let start = 0;
+    const { w, gap, line } = geo;
+
+    // The card nearest the middle sits where the reel is; the others follow
+    // it outwards, each one gutter on screen from the last.
+    const anchor = Math.round(pos);
+    const start = (anchor - pos) * (w + gap) - w / 2;
+    const spans = new Map([[mod(anchor, N), [start, start + w]]]);
+    const reach = Math.min(SIDE_CARDS, Math.floor((N - 1) / 2));
+    for (const side of [1, -1]) {
+      let edge = side > 0 ? start + w : start;
+      for (let k = 1; k <= reach; k++) {
+        const near = unproject(project(edge) + side * gap);
+        if (near === null) break;
+        const far = near + side * w;
+        spans.set(mod(anchor + side * k, N), side > 0 ? [near, far] : [far, near]);
+        edge = far;
+      }
+    }
+
+    const fade = (z) => Math.pow(DEPTH_FADE, -z / (w * geo.sin));
     cards.forEach((card, i) => {
-      const opened = Math.max(0, 1 - Math.abs(i - pos));
-      const size = thin + (open - thin) * opened;
-      const shift = `${(start + size / 2 - open / 2).toFixed(2)}px`;
-      const cut = `${((open - size) / 2).toFixed(2)}px`;
-      start += size + gap;
-      card.style.transform = across ? `translate3d(${shift}, 0, 0)` : `translate3d(0, ${shift}, 0)`;
-      card.style.clipPath = across ? `inset(0 ${cut})` : `inset(${cut} 0)`;
-      card.style.setProperty('--shade', `rgba(0, 0, 0, ${((1 - opened) * DIM).toFixed(3)})`);
-      card.classList.toggle('is-front', i === front);
-      labels[i].style.opacity = Math.max(0, 1 - opened * 1.6).toFixed(3);
+      const span = spans.get(i);
+      if (card.hidden === Boolean(span)) card.hidden = !span;
+      if (!span) return;
+      const [ax, az] = onStrip(span[0]);
+      const [bx, bz] = onStrip(span[1]);
+      const dx = bx - ax;
+      const dz = bz - az;
+      card.style.transform =
+        `translate3d(${(ax + bx) / 2}px, 0, ${(az + bz) / 2}px) ` +
+        `rotateY(${Math.atan2(-dz, dx)}rad) scaleX(${Math.hypot(dx, dz) / w})`;
+      card.classList.toggle('is-front', i === mod(anchor, N));
+
+      // The further round the fold, the darker the card goes: from its near
+      // end to its far end (z runs straight along it). A shade over it, so it
+      // stays solid and the dust never shows through.
+      const [na, nm, nb] = [fade(az), fade((az + bz) / 2), fade(bz)];
+      const shade = na > 0.995 && nb > 0.995 ? 'none'
+        : `linear-gradient(to right, ${[na, nm, nb].map((v) => `rgba(0,0,0,${(1 - v).toFixed(3)})`).join(', ')})`;
+      if (shades[i] !== shade) {
+        shades[i] = shade;
+        card.style.setProperty('--shade', shade);
+      }
     });
 
-    if (front !== current) show(front, current === -1 ? 0 : Math.sign(front - current));
+    // The needle runs past the last project and comes back on at the start,
+    // like the reel.
+    // On a project its stem lies exactly over the tick (drawn on whole
+    // pixels); between projects it slides from one to the next.
+    const at = mod(pos, N);
+    const from = Math.floor(at);
+    const k = at - from;
+    const tick = (i) => line.col / 2 + mod(i, N) * line.unit;
+    const offset = (i) => tickX(tick(i)) - tick(i);
+    const x = line.col / 2 + at * line.unit + offset(from) * (1 - k) + offset(from + 1) * k - 5.5;
+    needles[0].style.transform = `translateX(${x}px)`;
+    needles[1].style.transform = `translateX(${x - N * line.unit}px)`;
+
+    const index = mod(Math.round(pos), N);
+    if (index !== current) show(index, current === -1 ? 0 : Math.sign(wrap(index - current)));
   }
 
   /* ---------- Title and meta ---------- */
@@ -238,6 +361,7 @@
       if (box === title) fitTitle(old);
       blinds(box, old, el, slats, direction, delay);
     });
+    buttons.forEach((button, i) => button.setAttribute('aria-current', i === index ? 'true' : 'false'));
     cards.forEach((card, i) => card.setAttribute('aria-hidden', i === index ? 'false' : 'true'));
   }
 
@@ -324,13 +448,13 @@
 
   /* ---------- Films ---------- */
 
-  /* The open slice's film plays once the row is at rest on it, silent until
-     the visitor turns the sound on (Sound off, or a click on the film); from
-     then on the films play with it, until they turn it off. The moment the
-     row moves it stops, and each film keeps its place: whenever the row
-     comes back to it, it picks up where it stopped. While it plays its
+  /* The film on the front card plays once the reel is at rest on it, silent
+     until the visitor turns the sound on (Sound off, or a click on the film);
+     from then on the films play with it, until they turn it off. The moment
+     the reel moves it stops, and each film keeps its place: whenever the
+     reel comes back to it, it picks up where it stopped. While it plays its
      timecode runs at the bottom right, and a pink line along its foot shows
-     how far it has got (it stays on a film the row has left). No films for
+     how far it has got (it stays on a film the reel has left). No films for
      reduced motion: the poster stays. */
   const films = cards.map((card) => card.querySelector('video'));
   let playing = null;   // the film playing, if any
@@ -430,7 +554,7 @@
   // The reel has come to rest on a card.
   function restFilms() {
     if (infoOpen || projectOpen || root.classList.contains('is-loading') || root.classList.contains('is-moving') || document.hidden) return;
-    const index = nearest();
+    const index = mod(Math.round(pos), N);
     films.forEach((video, i) => {
       if (!video || i === index) return;
       video.fadeId = (video.fadeId || 0) + 1;
@@ -500,27 +624,28 @@
     wakeCursor();
   }
 
-  // End a push on a whole slice: at least one slice on from where it began
+  // End a push on a whole card: at least one card on from where it began
   // once it is past NUDGE.
   function settle(from, to) {
     const moved = to - from;
     let n = Math.round(moved);
     if (n === 0 && Math.abs(moved) > NUDGE) n = Math.sign(moved);
-    target = within(from + n);
+    target = from + n;
     wake();
   }
 
   function goTo(index) {
-    target = within(index);
+    const from = Math.round(target);
+    target = from + wrap(index - mod(from, N));
     wake();
   }
 
   /* ---------- Input ---------- */
 
   // Wheel and trackpad, horizontal or vertical, anywhere on the screen. A
-  // gesture (a turn of the wheel, a swipe and its glide) moves the row on
-  // whole slices: one as it starts, another for each WHEEL_STEP more. The row
-  // always heads for a slice, so it never stops short and settles back.
+  // gesture (a turn of the wheel, a swipe and its glide) moves the reel on
+  // whole cards: one as it starts, another for each WHEEL_STEP more. The reel
+  // always heads for a card, so it never stops short and settles back.
   let gesture = null;
   let gestureTimer = 0;
   hero.addEventListener('wheel', (e) => {
@@ -532,14 +657,13 @@
     if (!gesture) gesture = { from: Math.round(target), sum: 0 };
     gesture.sum += delta;
     const steps = Math.ceil(Math.max(Math.abs(gesture.sum) - WHEEL_START, 0) / WHEEL_STEP);
-    target = within(gesture.from + Math.sign(gesture.sum) * Math.min(steps, WHEEL_MAX));
+    target = gesture.from + Math.sign(gesture.sum) * Math.min(steps, WHEEL_MAX);
     wake();
     clearTimeout(gestureTimer);
     gestureTimer = setTimeout(() => (gesture = null), 180);
   }, { passive: false });
 
-  // Drag the row (up and down where the slices stack); a press on a sliver
-  // opens it.
+  // Drag the reel; a click on a side card brings it to the front.
   reel.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
     dragging = { id: e.pointerId, x: e.clientX, y: e.clientY, from: Math.round(target), start: target, moved: false, trail: [] };
@@ -549,19 +673,18 @@
     if (!dragging || e.pointerId !== dragging.id) return;
     const dx = e.clientX - dragging.x;
     const dy = e.clientY - dragging.y;
-    const [along, across] = geo.across ? [dx, dy] : [dy, dx];
     if (!dragging.moved) {
       if (Math.hypot(dx, dy) < 6) return;
-      if (e.pointerType === 'touch' && Math.abs(across) > Math.abs(along)) {
-        dragging = null; // a swipe the other way is the browser's
+      if (e.pointerType === 'touch' && Math.abs(dy) > Math.abs(dx)) {
+        dragging = null; // a vertical swipe scrolls the page
         return;
       }
       dragging.moved = true;
       try { reel.setPointerCapture(e.pointerId); } catch {}
       reel.classList.add('is-dragging');
     }
-    target = within(dragging.start - along / DRAG_UNIT);
-    dragging.trail.push([e.timeStamp, geo.across ? e.clientX : e.clientY]);
+    target = dragging.start - dx / geo.dragUnit;
+    dragging.trail.push([e.timeStamp, e.clientX]);
     while (dragging.trail.length > 2 && e.timeStamp - dragging.trail[0][0] > 90) dragging.trail.shift();
     wake();
   });
@@ -578,12 +701,12 @@
       else goTo(Number(card.dataset.index));
       return;
     }
-    // A flick carries on up to two slices; a drag that came to rest doesn't.
+    // A flick carries on up to two cards; a drag that came to rest doesn't.
     let fling = 0;
     const [t0, x0] = drag.trail[0];
     const [t1, x1] = drag.trail[drag.trail.length - 1];
     if (!cancelled && e.timeStamp - t1 < 100) {
-      const speed = -(x1 - x0) / Math.max(t1 - t0, 16) / DRAG_UNIT * 1000; // slices per second
+      const speed = -(x1 - x0) / Math.max(t1 - t0, 16) / geo.dragUnit * 1000; // cards per second
       fling = Math.max(-2, Math.min(2, speed * 0.12));
     }
     settle(drag.from, target + fling);
@@ -605,7 +728,7 @@
     const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
     if (!step || e.metaKey || e.ctrlKey || e.altKey) return;
     e.preventDefault();
-    target = within(Math.round(target) + step);
+    target = Math.round(target) + step;
     wake();
   });
 
@@ -726,6 +849,13 @@
   const projectCloser = projectPage.querySelector('.project__close');
   let projectOpen = false;
   let projectWatch = null;   // turns rows in as they scroll up
+
+  function make(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text != null) el.textContent = text;
+    return el;
+  }
 
   // Word by word, so the lines can turn in one after another.
   const wordsOf = (text) => text.split(' ').flatMap((word, i) => (i ? [' ', make('span', 'project__word', word)] : [make('span', 'project__word', word)]));

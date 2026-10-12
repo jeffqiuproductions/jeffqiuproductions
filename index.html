@@ -24,7 +24,7 @@
   <!-- Loader: a countdown leader over the page until it has loaded (loader.js). -->
   <div class="loader" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
 
-  <!-- First screen — Figma "Portfolio for Jeffrey", frame home-page (78:2), 1280 × 832. -->
+  <!-- First screen — Figma "Portfolio for Jeffrey", frame home-page (1:5), 1280 × 832. -->
   <main class="hero">
 
     <!-- Backdrop: drifting dust behind everything, drawn by backdrop.js. -->
@@ -35,8 +35,7 @@
       <a class="label link watch info-open" href="#info" aria-controls="info" aria-expanded="false">Info</a>
     </header>
 
-    <!-- The reel: one card per project, side by side as slices, the current
-         one open (reel.js lays them out). -->
+    <!-- The reel: one card per project, laid out in 3D by reel.js. -->
     <section class="reel" aria-roledescription="carousel" aria-label="Selected work" tabindex="0">
       <div class="reel__stage"></div>
     </section>
@@ -51,6 +50,17 @@
         <div class="meta__row"><dt>Runtime</dt><dd data-meta="runtime"></dd></div>
         <div class="meta__row"><dt>YouTube</dt><dd data-meta="youtube"></dd></div>
       </dl>
+
+      <!-- Timeline: ticks (drawn by reel.js on the 12-column grid), the needle
+           over the current project and a number per project. -->
+      <nav class="timeline" aria-label="Projects">
+        <svg class="timeline__ticks" aria-hidden="true"></svg>
+        <div class="timeline__needles" aria-hidden="true">
+          <img class="needle" src="assets/needle.svg" width="11" height="33" alt="">
+          <img class="needle" src="assets/needle.svg" width="11" height="33" alt="">
+        </div>
+        <ol class="timeline__labels"></ol>
+      </nav>
     </div>
   </main>
 
