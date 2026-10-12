@@ -324,18 +324,17 @@
 
   /* ---------- Films ---------- */
 
-  /* The open slice's film plays once the row is at rest on it, with its
-     sound as soon as the browser allows (after the visitor's first click, tap
-     or key) unless they turn it off. The moment the reel moves it stops, and
-     each film keeps its place: whenever the reel comes back to it, it picks
-     up where it stopped. While it plays its timecode runs at the bottom
-     right, and a pink line along its foot shows how far it has got (it stays
-     on a film the reel has left). No films for reduced motion: the poster
-     stays. */
+  /* The open slice's film plays once the row is at rest on it, silent until
+     the visitor turns the sound on (Sound off, or a click on the film); from
+     then on the films play with it, until they turn it off. The moment the
+     row moves it stops, and each film keeps its place: whenever the row
+     comes back to it, it picks up where it stopped. While it plays its
+     timecode runs at the bottom right, and a pink line along its foot shows
+     how far it has got (it stays on a film the row has left). No films for
+     reduced motion: the poster stays. */
   const films = cards.map((card) => card.querySelector('video'));
   let playing = null;   // the film playing, if any
-  let sound = true;     // the visitor wants sound (Sound off turns it off)
-  let allowed = Boolean(navigator.userActivation && navigator.userActivation.hasBeenActive);
+  let sound = false;    // the visitor wants sound (they turn it on and off)
 
   // Volume up or down over a moment, then `then`; a new fade replaces it.
   function fadeVolume(video, to, ms, then) {
@@ -383,7 +382,7 @@
   function startFilm(video) {
     playing = video;
     video.fadeId = (video.fadeId || 0) + 1;
-    if (sound && allowed) playHeard(video);
+    if (sound) playHeard(video);
     else playSilent(video);
     showSound();
     if (!ticking) {
@@ -442,27 +441,12 @@
   }
 
   function toggleSound() {
-    allowed = true; // a click: the browser allows sound now
     if (!playing) return;
     sound = playing.muted;
     if (sound) playHeard(playing);
     else playing.muted = true;
     showSound();
   }
-
-  // The first click, tap or key anywhere turns the sound on (a click on the
-  // playing film is its own toggle).
-  function allow(e) {
-    if (navigator.userActivation && !navigator.userActivation.isActive) return;
-    if (e.target instanceof Element && e.target.closest('.reel__card.is-playing')) return;
-    const first = !allowed;
-    allowed = true;
-    if (first && sound && playing && playing.muted) {
-      playHeard(playing);
-      showSound();
-    }
-  }
-  ['pointerdown', 'pointerup', 'keydown'].forEach((type) => addEventListener(type, allow, true));
 
   // Not while the page is out of sight, nor under the loader.
   document.addEventListener('visibilitychange', () => (document.hidden ? stopFilm() : restFilms()));
