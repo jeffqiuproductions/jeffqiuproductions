@@ -285,9 +285,9 @@
 
   /* ---------- Page entrance ---------- */
 
-  /* The page comes in from under the loader: the reel rises into place, the
-     title and the meta values slide up through their boxes (as when the reel
-     turns), the top bar and the timeline fade in. */
+  /* The page comes in from under the loader: the slices rise into place, the
+     title and the meta values slide up through their boxes (as when the row
+     moves on), the top bar fades in. */
   function showPage() {
     root.classList.remove('is-loading');
     const quiet = reduceMotion.matches;
@@ -306,7 +306,6 @@
       play(row.querySelector('.meta__value:last-child'), up, 900, 300 + i * 50);
     });
     play(document.querySelector('.hero__bar'), fade, 1000, 200);
-    play(document.querySelector('.timeline'), fade, 1000, 420);
   }
 
   /* ---------- Run ---------- */
