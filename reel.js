@@ -3,7 +3,8 @@
 
 (() => {
   /* The projects; the ones still called Lorem ipsum are placeholders. A
-     project can have `youtube` (the film on YouTube, the meta's "Watch ↗")
+     project can have `youtube` or `instagram` (where the film is: the meta's
+     last row takes its name, with "Watch ↗")
      and `media: { src, poster, volume, fps, ratio }` for its card: a film
      (.mp4 / .webm, looping while it is at the front; `poster` is its first
      frame, shown until it plays; `volume` evens out how loud the films are;
@@ -15,6 +16,13 @@
      `stills` (pictures); until it does, the page has Lorem ipsum and the
      poster, cropped closer, stands in for stills. */
   const PROJECTS = [
+    {
+      title: 'Maison Solenne', type: 'Spec ad', year: '2026', runtime: '00:42',
+      instagram: 'https://www.instagram.com/reel/DeR8tkwp-Pf/',
+      // A fashion ad for a made-up brand. From the start (the whole film is 42
+      // seconds): the closed eyes to the dune's crest at sunset.
+      media: { src: 'assets/films/desert.mp4', poster: 'assets/films/desert.jpg', volume: 0.95, fps: 24 },
+    },
     {
       title: 'Ocean Wonders', type: 'AI film', year: '2025', runtime: '01:49',
       youtube: 'https://youtu.be/wvu-Rvvs_QU',
@@ -33,20 +41,15 @@
       // From 0:56: the eruption to "Heard in Perth".
       media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5, fps: 30 },
     },
-    {
-      title: 'Consectetur', type: 'AI film', year: '2025', runtime: '00:42',
-      // From the start (the whole film is 42 seconds): the closed eyes to the
-      // dune's crest at sunset. No name or YouTube link yet.
-      media: { src: 'assets/films/desert.mp4', poster: 'assets/films/desert.jpg', volume: 0.95, fps: 24 },
-    },
     { title: 'Adipiscing',  type: 'Short film', year: '2025', runtime: '11:20' },
     { title: 'Elit sed',    type: 'Promo',      year: '2024', runtime: '00:30' },
-    { title: 'Tempor',      type: 'Short film', year: '2024', runtime: '07:05' },
-    { title: 'Incididunt',  type: 'Commercial', year: '2024', runtime: '01:00' },
   ];
 
   const N = PROJECTS.length;
-  const META = ['type', 'year', 'runtime', 'youtube'];
+  const META = ['type', 'year', 'runtime', 'watch'];
+  // Where a film can be watched, in the order looked for; the last meta row
+  // is named after it (YouTube when there is nowhere yet).
+  const PLATFORMS = [['youtube', 'YouTube'], ['instagram', 'Instagram']];
 
   /* In the frame the side card's far edge meets the window edge at 400.63
      of its 440px height: that fixes the angle and the perspective. */
@@ -91,6 +94,7 @@
   const stage = reel.querySelector('.reel__stage');
   const title = document.querySelector('.title');
   const metaValues = Object.fromEntries(META.map((key) => [key, document.querySelector(`[data-meta="${key}"]`)]));
+  const watchKey = document.querySelector('[data-meta-key="watch"]');
   const timeline = document.querySelector('.timeline');
   const ticks = timeline.querySelector('.timeline__ticks');
   const needles = [...timeline.querySelectorAll('.needle')];
@@ -349,13 +353,15 @@
     const rows = [
       [title, 'title__text', (project) => project.title, SLATS, 0],
       ...META.map((key, row) => [metaValues[key], 'meta__value', (project) => metaValue(project, key), META_SLATS, 120 + row * 70]),
+      // The last row's name turns with its value, but only when it changes.
+      [watchKey, 'meta__key', (project) => platformOf(project)[1], META_SLATS, 120 + (META.length - 1) * 70, true],
     ];
-    rows.forEach(([box, className, value, slats, delay]) => {
+    rows.forEach(([box, className, value, slats, delay, onChange]) => {
       box.replaceChildren();
       const el = words(className, value(PROJECTS[index]));
       box.append(el);
       if (box === title) fitTitle(el);
-      if (!turn) return;
+      if (!turn || (onChange && value(PROJECTS[from]) === value(PROJECTS[index]))) return;
       const old = words(className, value(PROJECTS[from]));
       box.append(old);
       if (box === title) fitTitle(old);
@@ -365,17 +371,21 @@
     cards.forEach((card, i) => card.setAttribute('aria-hidden', i === index ? 'false' : 'true'));
   }
 
-  // The YouTube row links out to the film; a project without one has a dash.
+  // [key, name] of where the project's film can be watched.
+  const platformOf = (project) => PLATFORMS.find(([key]) => project[key]) || [null, PLATFORMS[0][1]];
+
+  // The last row links out to the film; a project without one has a dash.
   function metaValue(project, key) {
-    if (key !== 'youtube') return project[key];
-    if (!project.youtube) return '—';
+    if (key !== 'watch') return project[key];
+    const [platform, name] = platformOf(project);
+    if (!platform) return '—';
     const link = document.createElement('a');
     link.className = 'link watch';
-    link.href = project.youtube;
+    link.href = project[platform];
     link.target = '_blank';
     link.rel = 'noopener';
     link.textContent = 'Watch ↗';
-    link.setAttribute('aria-label', `Watch ${project.title} on YouTube`);
+    link.setAttribute('aria-label', `Watch ${project.title} on ${name}`);
     return link;
   }
 
@@ -902,7 +912,7 @@
     side.append(
       make('span', 'label project__number project__turn', `${pad(i + 1)} / ${pad(N)}`),
       heading,
-      projectList(META.map((key) => [key === 'youtube' ? 'YouTube' : key[0].toUpperCase() + key.slice(1), metaValue(project, key)])),
+      projectList(META.map((key) => [key === 'watch' ? platformOf(project)[1] : key[0].toUpperCase() + key.slice(1), metaValue(project, key)])),
       text,
     );
     const n = mod(i + 1, N);

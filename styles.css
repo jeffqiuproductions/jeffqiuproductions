@@ -93,7 +93,7 @@ a {
 
 /* Top bar, the reel in whatever height is left, the title block at the bottom.
    In the frame the reel's 440px card sits centred between the top bar (ends
-   at 59) and the title (starts at 647). */
+   at 56) and the title (starts at 653). */
 .hero {
   position: relative;
   display: flex;
@@ -349,7 +349,7 @@ a {
 }
 
 /* Meta rows: muted label, bright value, both set right in 86px columns, a
-   gutter from the title's box. The block's foot is 3px above the title's and
+   gutter from the title's box. The block's foot is 10px above the title's and
    its top rises above the title's, but it takes no height in the row (the
    negative top margin): the reel centres on the gap between the top bar and
    the title, as in the frame. */
@@ -358,7 +358,7 @@ a {
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
-  margin: -200px 0 3px var(--gutter);
+  margin: -200px 0 10px var(--gutter);
   text-align: right;
 }
 
@@ -372,7 +372,9 @@ a {
   color: var(--color-muted);
 }
 
-.meta dd {
+/* The last row's name changes with the project (YouTube, Instagram), so the
+   names are boxes like the values. */
+.meta :is(dt, dd) {
   position: relative;
   height: 16px;
   margin: 0;
@@ -390,7 +392,7 @@ a {
   pointer-events: none;
 }
 
-.meta__value.is-slat {
+:is(.meta__value, .meta__key).is-slat {
   position: absolute;
   top: 0;
   left: 0;
@@ -402,7 +404,7 @@ a {
   grid-column: 1 / -1;
   position: relative;
   height: 37px;
-  margin-top: 38px;
+  margin-top: 32px;
   /* One slot a project (reel.js sets --count), gutters between. */
   --col: calc((100% - (var(--count, 12) - 1) * var(--gutter)) / var(--count, 12));
 }
@@ -1113,10 +1115,6 @@ a {
     gap: 12px;
   }
 
-  .timeline {
-    margin-top: 32px;
-  }
-
   .info {
     width: calc(8 * var(--col) + 7 * var(--gutter) + var(--margin));
   }
@@ -1156,8 +1154,9 @@ a {
     gap: 8px 16px;
   }
 
+  /* Wide enough for the longest name, Instagram. */
   .meta__row {
-    grid-template-columns: 64px auto;
+    grid-template-columns: 72px auto;
   }
 
   .hero__foot {
