@@ -322,32 +322,6 @@ a {
   white-space: nowrap;
 }
 
-/* A press on the title opens its page; under the pointer it turns pink like
-   Watch and Info. */
-.title__text:not(.is-slat) {
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-@media (hover: hover) {
-  .title__text:not(.is-slat):hover {
-    color: var(--color-needle);
-  }
-}
-
-.title:focus-visible .title__text:not(.is-slat) {
-  color: var(--color-needle);
-}
-
-.title:focus-visible {
-  outline: none;
-}
-
-.title:focus-visible .title__text {
-  outline: 1px solid var(--color-needle);
-  outline-offset: 4px;
-}
-
 /* Meta rows: muted label, bright value, both set right in 86px columns, a
    gutter from the title's box. The block's foot is 10px above the title's and
    its top rises above the title's, but it takes no height in the row (the
@@ -977,9 +951,12 @@ a {
 
 /* ---------- Cursor ---------- */
 
-/* With a mouse, over the reel the pointer is a glass disc that says Drag,
-   with an arrow either side. It stretches with the reel as it runs and its
-   arrows spread while it is held; over the Sound button it is a pink dot.
+/* With a mouse, over the reel the pointer is a frosted disc with words
+   running round it: Drag, an arrow either side in the middle; over the film
+   at the front, Open project, the right arrow turning to point up and out
+   in pink as it grows its shaft. The words turn slowly, faster as the reel
+   runs (and back as it runs back); the disc stretches with the reel and its
+   arrows spread while it is held. Over the Sound button it is a pink dot.
    reel.js moves it. */
 .cursor {
   position: fixed;
@@ -1002,88 +979,172 @@ a {
   position: absolute;
 }
 
-.cursor__disc {
+.cursor__orbit {
   position: absolute;
-  left: -40px;
-  top: -40px;
+  left: 0;
+  top: 0;
   display: grid;
   place-items: center;
-  width: 80px;
-  height: 80px;
-  border: 1px solid rgba(241, 239, 233, 0.4);
+  width: 112px;
+  height: 112px;
+  translate: -50% -50%;
+  scale: 0;
   border-radius: 50%;
   color: var(--color-ink);
   background: rgba(23, 23, 23, 0.3);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  transform: scale(0);
-  transition: transform 0.45s var(--ease-out), color 0.25s, background-color 0.25s, border-color 0.25s;
+  transition: scale 0.45s var(--ease-out), background-color 0.3s;
 }
 
-.cursor__label {
-  font-family: var(--font-text);
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 16px;
-  letter-spacing: 0.24px;
-  text-transform: uppercase;
+.cursor:is([data-state="drag"], [data-state="open"]) .cursor__orbit {
+  scale: 1;
+}
+
+.cursor[data-state="drag"].is-pressed .cursor__orbit {
+  scale: 0.9;
+}
+
+.cursor[data-state="open"].is-pressed .cursor__orbit {
+  scale: 0.94;
+}
+
+.cursor[data-state="dot"] .cursor__orbit {
+  scale: 0.09;
+  background: var(--color-needle);
+}
+
+/* The words: 12px on the circle (reel.js fits them round it). */
+.cursor__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  rotate: calc(var(--roll, 0) * 70deg);
+  animation: cursor-turn 16s linear infinite;
   transition: opacity 0.2s;
 }
 
-/* Drag's arrows, either side of the word. */
-.cursor__disc::before,
-.cursor__disc::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 5px;
-  height: 5px;
-  margin-top: -3px;
-  border: solid currentColor;
-  border-width: 1px 1px 0 0;
+@keyframes cursor-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cursor__words {
+  fill: currentColor;
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  white-space: pre; /* keeps each phrase's last space, where the circle closes */
+  transition: opacity 0.3s;
+}
+
+.cursor__words--open,
+.cursor[data-state="open"] .cursor__words--drag {
   opacity: 0;
-  transition: transform 0.45s var(--ease-out), opacity 0.2s;
 }
 
-.cursor__disc::before {
-  left: 11px;
-  transform: rotate(-135deg);
-}
-
-.cursor__disc::after {
-  right: 11px;
-  transform: rotate(45deg);
-}
-
-.cursor[data-state="drag"] .cursor__disc {
-  transform: scale(1);
-}
-
-.cursor[data-state="drag"] .cursor__disc::before,
-.cursor[data-state="drag"] .cursor__disc::after {
+.cursor[data-state="open"] .cursor__words--open {
   opacity: 1;
 }
 
-.cursor[data-state="drag"].is-pressed .cursor__disc {
-  transform: scale(0.88);
+/* The arrows in the middle, 1px lines with 8px heads: Drag's two point
+   apart; over the film the right one turns to point up and out and grows
+   its shaft, in pink, and the left one goes. */
+.cursor__orbit::before,
+.cursor__orbit::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border: solid currentColor;
+  border-width: 1px 1px 0 0;
+  transition: opacity 0.2s, translate 0.5s var(--ease-out), rotate 0.5s var(--ease-out), color 0.3s;
 }
 
-.cursor[data-state="drag"].is-pressed .cursor__disc::before {
-  transform: translateX(-6px) rotate(-135deg);
+.cursor__orbit::before {
+  left: calc(50% - 14px);
+  rotate: -135deg;
 }
 
-.cursor[data-state="drag"].is-pressed .cursor__disc::after {
-  transform: translateX(6px) rotate(45deg);
+.cursor__orbit::after {
+  right: calc(50% - 14px);
+  rotate: 45deg;
 }
 
-.cursor[data-state="dot"] .cursor__disc {
-  border-color: transparent;
-  background: var(--color-needle);
-  transform: scale(0.1);
+.cursor[data-state="drag"].is-pressed .cursor__orbit::before {
+  translate: -4px 0;
 }
 
-.cursor[data-state="dot"] .cursor__label {
+.cursor[data-state="drag"].is-pressed .cursor__orbit::after {
+  translate: 4px 0;
+}
+
+.cursor[data-state="open"] .cursor__orbit::before {
   opacity: 0;
+  translate: 4px 0;
+}
+
+/* The head, its corner on the shaft's tip (5px up and right of the middle). */
+.cursor[data-state="open"] .cursor__orbit::after {
+  color: var(--color-needle);
+  translate: -9px -1px;
+  rotate: 0deg;
+}
+
+/* The shaft, from 5px down and left of the middle up to the head. */
+.cursor__shaft {
+  position: absolute;
+  left: calc(50% - 5.5px);
+  top: calc(50% + 5px - 14.14px);
+  width: 1px;
+  height: 14.14px;
+  background: var(--color-needle);
+  transform-origin: 50% 100%;
+  rotate: 45deg;
+  scale: 1 0;
+  transition: scale 0.45s var(--ease-out), translate 0.5s var(--ease-out);
+}
+
+.cursor[data-state="open"] .cursor__shaft {
+  scale: 1 1;
+  transition-delay: 0.08s;
+}
+
+.cursor[data-state="open"].is-pressed .cursor__orbit::after {
+  translate: -7px -3px;
+}
+
+.cursor[data-state="open"].is-pressed .cursor__shaft {
+  translate: 2px -2px;
+}
+
+/* As a dot, nothing but the pink. */
+.cursor[data-state="dot"] :is(.cursor__ring, .cursor__shaft),
+.cursor[data-state="dot"] .cursor__orbit::before,
+.cursor[data-state="dot"] .cursor__orbit::after {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor__ring {
+    animation: none;
+  }
+}
+
+/* The film at the front draws in a little under the pointer, as the cursor
+   says Open project. */
+.reel__media {
+  transition: scale 0.9s var(--ease-out);
+}
+
+.has-cursor:not(.is-moving) .reel__card.is-front:hover .reel__media {
+  scale: 1.04;
 }
 
 /* ---------- Smaller windows ---------- */

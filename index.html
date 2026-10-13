@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Syne:wght@800&display=swap">
   <!-- Geist's ↗ (for "Watch ↗") isn't in its latin subset; this brings just that. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500&text=%E2%86%97&display=swap">
-  <link rel="stylesheet" href="styles.css?v=reel-3">
+  <link rel="stylesheet" href="styles.css?v=reel-4">
   <script>
     // The loader (loader.js) covers the page while it loads. If it never
     // starts, the page shows anyway.
@@ -41,8 +41,7 @@
     </section>
 
     <div class="hero__foot">
-      <!-- A press on the title (or Enter) opens its project's page. -->
-      <h1 class="title" tabindex="0"></h1>
+      <h1 class="title"></h1>
 
       <dl class="meta">
         <div class="meta__row"><dt>Type</dt><dd data-meta="type"></dd></div>
@@ -97,7 +96,7 @@
   </aside>
 
   <!-- A project's page: up from the bottom over the whole screen when its
-       title is pressed (reel.js fills it from the project and opens it). The
+       film is clicked at the front (reel.js fills it and opens it). The
        synopsis, credits and stills are placeholders until a project has its
        own. -->
   <div class="project-scrim" aria-hidden="true"></div>
@@ -109,13 +108,21 @@
     </div>
   </div>
 
-  <!-- The cursor over the reel, for a mouse (reel.js). -->
+  <!-- The cursor over the reel, for a mouse (reel.js): a frosted disc with
+       words round it (Drag, or Open project over the film at the front;
+       reel.js repeats each phrase to fit), arrows in the middle (the shaft
+       is Open's), a pink dot over Sound. -->
   <div class="cursor" aria-hidden="true">
-    <div class="cursor__body"><div class="cursor__disc"><span class="cursor__label">Drag</span></div></div>
+    <div class="cursor__body">
+      <div class="cursor__orbit">
+        <svg class="cursor__ring" viewBox="0 0 112 112"><path id="cursor-ring" d="M56,12.13 a43.87,43.87 0 1,1 0,87.74 a43.87,43.87 0 1,1 0,-87.74" fill="none"/><text class="cursor__words cursor__words--drag"><textPath href="#cursor-ring" lengthAdjust="spacing" data-words="Drag · ">Drag · Drag · Drag · Drag · Drag · </textPath></text><text class="cursor__words cursor__words--open"><textPath href="#cursor-ring" lengthAdjust="spacing" data-words="Open project · ">Open project · Open project · </textPath></text></svg>
+        <i class="cursor__shaft"></i>
+      </div>
+    </div>
   </div>
 
-  <script src="reel.js?v=reel-3"></script>
-  <script src="backdrop.js?v=reel-3"></script>
-  <script src="loader.js?v=reel-3"></script>
+  <script src="reel.js?v=reel-4"></script>
+  <script src="backdrop.js?v=reel-4"></script>
+  <script src="loader.js?v=reel-4"></script>
 </body>
 </html>

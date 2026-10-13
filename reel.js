@@ -11,7 +11,7 @@
      `fps` is its frame rate, for the timecode) or a
      picture, 16:9 filling the card or 1:1 set in its middle, as in the Figma
      placeholders ("Video 16:9", "Image 1:1"). Each film is 40 seconds of the
-     whole one, cut to the card's shape. For its page (a press on the title)
+     whole one, cut to the card's shape. For its page (a click on its film at the front)
      a project can have `synopsis`, `credits` ([name, value] pairs) and
      `stills` (pictures); until it does, the page has Lorem ipsum and the
      poster, cropped closer, stands in for stills. */
@@ -84,6 +84,8 @@
   const CURSOR_STRETCH = 0.08;  // how far it stretches for each card a second
                                 // the reel runs at…
   const CURSOR_STRETCH_MAX = 0.4; // …and at most
+  const RING_RADIUS = 43.87;    // px of the circle the cursor's words run round
+  const RING_TRACK = 2;         // px or so between their letters
 
   const MUTED = '#8b8984';
   const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -459,7 +461,7 @@
   /* ---------- Films ---------- */
 
   /* The film on the front card plays once the reel is at rest on it, silent
-     until the visitor turns the sound on (Sound off, or a click on the film);
+     until the visitor turns the sound on (Sound off);
      from then on the films play with it, until they turn it off. The moment
      the reel moves it stops, and each film keeps its place: whenever the
      reel comes back to it, it picks up where it stopped. While it plays its
@@ -707,8 +709,11 @@
     if (!drag.moved) {
       const card = e.target.closest('.reel__card');
       if (!card || cancelled || e.target.closest('.reel__sound')) return;
-      if (card.classList.contains('is-playing')) toggleSound();
-      else goTo(Number(card.dataset.index));
+      // On the film at the front a click opens its page (the cursor says
+      // Open); on another it turns the reel to that one.
+      if (card.classList.contains('is-front') && !root.classList.contains('is-moving')) {
+        if (projectReady()) openProject(Number(card.dataset.index));
+      } else goTo(Number(card.dataset.index));
       return;
     }
     // A flick carries on up to two cards; a drag that came to rest doesn't.
@@ -733,6 +738,12 @@
     }
     if (projectOpen) {
       if (e.key === 'Escape') closeProject();
+      return;
+    }
+    // Enter on the reel opens the film at the front, like a click on it.
+    if ((e.key === 'Enter' || e.key === ' ') && e.target === reel) {
+      e.preventDefault();
+      if (projectReady()) openProject(current);
       return;
     }
     const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
@@ -844,7 +855,7 @@
 
   /* ---------- Project page ---------- */
 
-  /* A press on the title opens its project's page over the whole screen, up
+  /* A click on the film at the front opens its project's page over the whole screen, up
      from the bottom with Info's motion, the reel dimming behind it, its rows
      turning in as Info's do. On the left, staying put: the number, title,
      meta, synopsis and credits; on the right, scrolling by: the stills, then
@@ -983,7 +994,7 @@
     const focused = projectPage.contains(document.activeElement);
     hero.inert = false;
     root.classList.remove('is-project');
-    if (focused) title.focus({ preventScroll: true });
+    if (focused) reel.focus({ preventScroll: true });
     restFilms();
     aimCursor();
   }
@@ -1005,42 +1016,63 @@
     projectCloser.focus({ preventScroll: true });
   }
 
-  // A press on the title (or Enter on it) opens its page; not while the reel
-  // runs.
+  // A project's page opens only with the reel at rest.
   const projectReady = () => !['is-moving', 'is-loading', 'is-info'].some((name) => root.classList.contains(name));
-  title.addEventListener('click', (e) => {
-    if (e.target.closest('.title__text') && projectReady()) openProject(current);
-  });
-  title.addEventListener('keydown', (e) => {
-    if ((e.key === 'Enter' || e.key === ' ') && projectReady()) {
-      e.preventDefault();
-      openProject(current);
-    }
-  });
   projectCloser.addEventListener('click', closeProject);
   // Scrolled down, the page's bar frosts over what passes under it.
   projectScroll.addEventListener('scroll', () => projectPage.classList.toggle('is-scrolled', projectScroll.scrollTop > 24), { passive: true });
 
   /* ---------- Cursor ---------- */
 
-  /* With a mouse, over the reel a disc that says Drag (a dot over the Sound
-     button). It eases after the mouse and stretches with the reel as it
-     runs. */
+  /* With a mouse, over the reel a disc with Drag running round it; over the
+     film at the front, with the reel at rest, Open project (a click there
+     opens the project's page); over the Sound button a dot. It eases after
+     the mouse and stretches with the reel as it runs, and its words turn
+     with the reel (--roll, in cards run). */
   const cursor = document.querySelector('.cursor');
   const cursorBody = cursor.querySelector('.cursor__body');
-  const cursorLabel = cursor.querySelector('.cursor__label');
   const mouse = matchMedia('(hover: hover) and (pointer: fine)');
   let pointer = null;             // where the mouse is, while it is on the page
   const drawn = { x: 0, y: 0 };   // where the cursor is
   let cursorState = '';
   let cursorRunning = false;
   let cursorLast = 0;
+  let roll = 0;                   // how far the reel has run, in cards
+  let ringFitted = false;
+
+  /* Each phrase round the circle as many whole times as leaves its letters
+     about RING_TRACK apart (never squeezed), so Drag and Open project are
+     spaced alike; the circle's length closes it exactly. Measured once the
+     cursor shows (it can't be measured hidden), again once Geist is in. */
+  function fitRing() {
+    const round = 2 * Math.PI * RING_RADIUS;
+    for (const path of cursor.querySelectorAll('textPath')) {
+      const words = path.dataset.words;
+      path.removeAttribute('textLength');
+      let best = 1;
+      let bestOff = Infinity;
+      for (let times = 1; times < 20; times++) {
+        path.textContent = words.repeat(times);
+        const length = path.getComputedTextLength();
+        if (!length) return;
+        if (length > round) break;
+        const off = Math.abs((round - length) / (words.length * times) - RING_TRACK);
+        if (off < bestOff) [best, bestOff] = [times, off];
+      }
+      path.textContent = words.repeat(best);
+      path.setAttribute('textLength', round.toFixed(1));
+    }
+    ringFitted = true;
+  }
+  document.fonts.ready.then(() => (ringFitted = false));
 
   function stateAt(el) {
     if (infoOpen || projectOpen) return '';
     if (dragging && dragging.moved) return 'drag';
     if (!(el instanceof Element) || !el.closest('.reel')) return '';
-    return el.closest('.reel__sound') ? 'dot' : 'drag';
+    if (el.closest('.reel__sound')) return 'dot';
+    if (!root.classList.contains('is-moving') && el.closest('.reel__card.is-front')) return 'open';
+    return 'drag';
   }
 
   function aimCursor() {
@@ -1050,6 +1082,7 @@
     if (!cursorState && pointer) Object.assign(drawn, pointer); // it appears where the mouse is
     cursorState = state;
     cursor.dataset.state = state;
+    if (state && !ringFitted) fitRing();
     wakeCursor();
   }
 
@@ -1072,7 +1105,10 @@
       ? Math.min(Math.abs(velocity) * CURSOR_STRETCH, CURSOR_STRETCH_MAX) : 0;
     cursor.style.transform = `translate3d(${drawn.x.toFixed(2)}px, ${drawn.y.toFixed(2)}px, 0)`;
     cursorBody.style.transform = `scale(${(1 + stretch).toFixed(3)}, ${(1 - stretch / 2).toFixed(3)})`;
-    cursorLabel.style.scale = `${(1 / (1 + stretch)).toFixed(3)} ${(1 / (1 - stretch / 2)).toFixed(3)}`; // the word stays as it is
+    if (velocity) {
+      roll += velocity * dt;
+      cursor.style.setProperty('--roll', roll.toFixed(4));
+    }
     const caught = !pointer || Math.hypot(pointer.x - drawn.x, pointer.y - drawn.y) < 0.1;
     if (caught && !running) cursorRunning = false;
     else requestAnimationFrame(cursorFrame);
