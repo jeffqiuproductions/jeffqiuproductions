@@ -859,19 +859,22 @@
 
   /* A click on the film at the front opens its project's page over the whole screen, up
      from the bottom with Info's motion, the reel dimming behind it, its rows
-     turning in as Info's do. On the left, staying put: the number, title,
-     meta, synopsis and credits; on the right, scrolling by: the stills, then
-     the next project. Close or Esc closes it. The films wait while it is
-     open. */
-  const SYNOPSIS = 'Lorem ipsum dolor sit amet consectetur. Varius lacus ut enim diam quis. Rhoncus tincidunt tristique aliquam donec. Diam dolor morbi sed velit sed dignissim pellentesque amet natoque.';
-  const CREDITS = [['Role', 'Director'], ['Client', 'Lorem ipsum'], ['Tools', 'Runway'], ['Music', 'Lorem ipsum']];
+     turning in as Info's do (Figma "project-page"). On the left, staying put:
+     the number and title, the meta and credits side by side, the synopsis;
+     on the right, scrolling by: the stills. Close or Esc closes it. The
+     films wait while it is open. */
+  const SYNOPSIS = [
+    'Lorem ipsum dolor sit amet consectetur. Feugiat egestas tristique ac tellus tempus est metus natoque. Elit vitae dignissim at eget egestas interdum aliquet arcu. Sit justo bibendum est mauris pretium. Et a aliquam mattis leo lacus enim.',
+    'A ullamcorper nulla lacus nulla eget ut justo velit. Tincidunt venenatis arcu orci placerat adipiscing rhoncus donec non malesuada. Lorem quis elit at turpis. Nulla egestas tellus vel aliquet fames enim iaculis a. Elementum vitae aliquam velit porttitor faucibus sapien. Lobortis ante nunc lectus at molestie lobortis. Eget facilisi quam nunc nulla.',
+    'Volutpat quam tincidunt ac libero urna rhoncus ante quis nulla. Eget enim sed sagittis nisi tristique vivamus enim risus enim. Molestie id gravida varius tempus. In ipsum sodales bibendum tempor vitae lobortis. Massa in semper nunc nibh quam ac. Pellentesque fames enim massa scelerisque viverra ullamcorper nisl euismod amet. Viverra ornare vulputate lacus vestibulum ac enim eget pellentesque. Est justo aliquam phasellus quis amet.',
+  ];
+  const CREDITS = [['Role', 'Director'], ['Client', 'Lorem ipsum'], ['Tools', 'Lorem ipsum'], ['Music', 'Lorem ipsum']];
   const CROPS = [[1, '50% 50%'], [2.2, '22% 62%'], [2.6, '80% 45%'], [1.6, '60% 30%']]; // [zoom, at]
 
   const projectPage = document.querySelector('.project');
   const projectScroll = projectPage.querySelector('.project__scroll');
   const projectCloser = projectPage.querySelector('.project__close');
   let projectOpen = false;
-  let projectWatch = null;   // turns rows in as they scroll up
 
   function make(tag, className, text) {
     const el = document.createElement(tag);
@@ -901,7 +904,7 @@
     const poster = project.media && (project.media.poster || (/\.(jpe?g|png|webp)$/i.test(project.media.src) ? project.media.src : null));
     const pictures = project.stills ? project.stills.map((src) => [src]) : CROPS.map((crop) => [poster, ...crop]);
     return pictures.map(([src, zoom = 1, at]) => {
-      const box = make('div', 'project__still project__block');
+      const box = make('div', 'project__still');
       if (src) {
         const img = make('img');
         img.src = src;
@@ -917,30 +920,37 @@
     const project = PROJECTS[i];
     const heading = make('h2', 'project__title');
     heading.append(...wordsOf(project.title));
-    const synopsis = make('p', 'project__synopsis');
-    synopsis.append(...wordsOf(project.synopsis || SYNOPSIS));
-    const text = make('div', 'project__text');
-    text.append(synopsis, projectList(project.credits || CREDITS));
-    const side = make('div', 'project__side');
-    side.append(
-      make('span', 'label project__number project__turn', `${pad(i + 1)} / ${pad(N)}`),
-      heading,
+    const facts = make('div', 'project__facts');
+    facts.append(
       projectList(META.map((key) => [key === 'watch' ? platformOf(project)[1] : key[0].toUpperCase() + key.slice(1), metaValue(project, key)])),
-      text,
+      projectList(project.credits || CREDITS),
     );
-    const n = mod(i + 1, N);
-    const next = make('button', 'project__next project__block');
-    next.type = 'button';
-    next.append(make('span', 'label project__turn', 'Next project'), make('span', 'project__next-title project__turn', PROJECTS[n].title));
-    next.addEventListener('click', () => turnProjectTo(n));
+    const synopsis = make('div', 'project__synopsis');
+    synopsis.append(...[].concat(project.synopsis || SYNOPSIS).map((text) => {
+      const p = make('p');
+      p.append(...wordsOf(text));
+      return p;
+    }));
+    const side = make('div', 'project__side');
+    side.append(make('span', 'label project__number project__turn', `${pad(i + 1)} / ${pad(N)}`), heading, facts, synopsis);
     const media = make('div', 'project__media');
-    media.append(...stillsOf(project), next);
+    media.append(...stillsOf(project));
     const grid = make('div', 'project__grid');
     grid.append(side, media);
     projectScroll.replaceChildren(grid);
     projectScroll.scrollTop = 0;
     fitWords(heading);
+    sideWatch.disconnect();
+    sideWatch.observe(projectScroll);
+    sideWatch.observe(side);
   }
+
+  // The side stays put while the stills scroll by; one taller than the
+  // screen scrolls until its foot is in view, then stays.
+  const sideWatch = new ResizeObserver(() => {
+    const side = projectScroll.querySelector('.project__side');
+    if (side) side.style.top = `${Math.min(0, projectScroll.clientHeight - side.offsetHeight)}px`;
+  });
 
   // A heading whose longest word is wider than its column is set smaller.
   function fitWords(box) {
@@ -952,29 +962,14 @@
     }
   }
 
-  // What is on the page's first screen turns in now; the rest as it scrolls
-  // up.
+  // What is on the page's first screen turns in as it opens; the rest is
+  // simply there when it scrolls up.
   function turnProjectIn(delay) {
     const room = projectPage.clientHeight;
     const from = projectPage.getBoundingClientRect().top;
-    const below = (el) => el.getBoundingClientRect().top - from >= room * 0.92;
     const rows = [...projectScroll.querySelectorAll('.project__word, .project__turn, .project__list dt, .project__list dd, .project__still')]
       .filter((row) => row.getBoundingClientRect().top - from < room);
     turnRowsIn(projectPage, rows, delay);
-    if (projectWatch) projectWatch.disconnect();
-    if (reduceMotion.matches) return;
-    projectWatch = new IntersectionObserver((entries) => entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      projectWatch.unobserve(entry.target);
-      entry.target.classList.remove('is-waiting');
-      const block = entry.target;
-      turnRowsIn(projectPage, block.matches('.project__still') ? [block] : [...block.querySelectorAll('.project__turn')], 0);
-    }), { root: projectScroll, rootMargin: '0px 0px -8% 0px' });
-    projectScroll.querySelectorAll('.project__block').forEach((block) => {
-      if (!below(block)) return;
-      block.classList.add('is-waiting');
-      projectWatch.observe(block);
-    });
   }
 
   function openProject(i) {
@@ -992,37 +987,54 @@
   function closeProject() {
     if (!projectOpen) return;
     projectOpen = false;
-    if (projectWatch) projectWatch.disconnect();
     const focused = projectPage.contains(document.activeElement);
     hero.inert = false;
+    scrolling = false;
     root.classList.remove('is-project');
     if (focused) reel.focus({ preventScroll: true });
     restFilms();
     aimCursor();
   }
 
-  // Next project: the page turns to it, and the reel behind goes there too,
-  // so closing lands on it.
-  let turningProject = false;
-  async function turnProjectTo(n) {
-    if (turningProject) return;
-    turningProject = true;
-    goTo(n);
-    const out = projectScroll.animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduceMotion.matches ? 0 : 250, fill: 'forwards' });
-    await out.finished;
-    turningProject = false;
-    out.cancel();
-    if (!projectOpen) return; // closed meanwhile
-    fillProject(n);
-    turnProjectIn(0);
-    projectCloser.focus({ preventScroll: true });
-  }
-
   // A project's page opens only with the reel at rest.
   const projectReady = () => !['is-moving', 'is-loading', 'is-info'].some((name) => root.classList.contains(name));
   projectCloser.addEventListener('click', closeProject);
-  // Scrolled down, the page's bar frosts over what passes under it.
-  projectScroll.addEventListener('scroll', () => projectPage.classList.toggle('is-scrolled', projectScroll.scrollTop > 24), { passive: true });
+
+  /* The wheel scrolls the page smoothly: it moves where the page is headed
+     and the page eases there. Touch, keys and pinch scroll as they always
+     do, and stop the easing. */
+  const SCROLL_EASE = 0.1;   // of the way there each 60th of a second
+  let scrollAt = 0;          // where the page is, unrounded
+  let scrollTo = 0;          // where the wheel has sent it
+  let scrolling = false;
+
+  projectScroll.addEventListener('wheel', (e) => {
+    if (e.ctrlKey || reduceMotion.matches) return;
+    e.preventDefault();
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? projectScroll.clientHeight : 1;
+    const max = projectScroll.scrollHeight - projectScroll.clientHeight;
+    if (!scrolling) scrollAt = scrollTo = projectScroll.scrollTop;
+    scrollTo = Math.min(max, Math.max(0, scrollTo + e.deltaY * unit));
+    if (scrolling) return;
+    scrolling = true;
+    let last = performance.now();
+    requestAnimationFrame(function step(now) {
+      if (!scrolling) return;
+      const frames = Math.min(now - last, 100) / (1000 / 60);
+      last = now;
+      scrollAt += (scrollTo - scrollAt) * (1 - (1 - SCROLL_EASE) ** frames);
+      if (Math.abs(scrollTo - scrollAt) < 0.5) {
+        scrollAt = scrollTo;
+        scrolling = false;
+      }
+      projectScroll.scrollTop = scrollAt;
+      if (scrolling) requestAnimationFrame(step);
+    });
+  }, { passive: false });
+
+  projectScroll.addEventListener('scroll', () => {
+    if (scrolling && Math.abs(projectScroll.scrollTop - scrollAt) > 2) scrolling = false;
+  }, { passive: true });
 
   /* ---------- Cursor ---------- */
 
