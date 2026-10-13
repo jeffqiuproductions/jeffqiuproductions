@@ -2,9 +2,7 @@
    filaments and drifts slowly, drawn in WebGL behind the screen. Each pixel
    is a grain; how likely it is to be lit follows two slowly moving noise
    fields, brightest where they cross zero (the filaments) and where the
-   filaments meet. Without WebGL the page stays plain black. A project's
-   page shows the same dust behind it: each frame is copied onto its canvas
-   while it is open. */
+   filaments meet. Without WebGL the page stays plain black. */
 
 (() => {
   const OPACITY = 0.32;     // how strongly the dust shows through
@@ -151,17 +149,6 @@
   let last = -Infinity;
   let running = false;
 
-  const copy = document.querySelector('.project__backdrop');
-  const copyContext = copy && copy.getContext('2d');
-  function copyOver() {
-    if (copy.width !== canvas.width || copy.height !== canvas.height) {
-      copy.width = canvas.width;
-      copy.height = canvas.height;
-    }
-    copyContext.clearRect(0, 0, copy.width, copy.height);
-    copyContext.drawImage(canvas, 0, 0);
-  }
-
   function paint(now) {
     const dpr = Math.min(devicePixelRatio || 1, 2);
     const width = Math.round(canvas.clientWidth * dpr);
@@ -176,8 +163,6 @@
     gl.uniform1f(uTime, ((now - start) / 1000) * SPEED);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     canvas.classList.add('is-ready');
-    // Copied in the same frame, while the drawing is still there to copy.
-    if (copyContext && root.classList.contains('is-project')) copyOver();
   }
 
   function frame(now) {
@@ -204,10 +189,6 @@
 
   run();
   reduceMotion.addEventListener('change', run);
-  // Without motion nothing is drawn as the page opens, so draw it once then.
-  new MutationObserver(() => {
-    if (reduceMotion.matches && root.classList.contains('is-project')) paint(performance.now());
-  }).observe(root, { attributes: true, attributeFilter: ['class'] });
   addEventListener('resize', () => reduceMotion.matches && paint(performance.now()));
   canvas.addEventListener('webglcontextlost', () => canvas.classList.remove('is-ready'));
 })();
