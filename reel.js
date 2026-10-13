@@ -762,18 +762,20 @@
   const info = document.querySelector('.info');
   const infoOpener = document.querySelector('.info-open');
   const infoCloser = info.querySelector('.info__close');
-  const description = info.querySelector('.info__description');
+  const paragraphs = info.querySelectorAll('.info__description p');
   const email = info.querySelector('.info__email');
   const address = email.textContent.trim();
   let infoOpen = false;
 
   // The description word by word, so its lines can turn one after another.
-  description.replaceChildren(...description.textContent.trim().split(/\s+/).flatMap((word, i) => {
-    const span = document.createElement('span');
-    span.className = 'info__word';
-    span.textContent = word;
-    return i ? [' ', span] : [span];
-  }));
+  for (const p of paragraphs) {
+    p.replaceChildren(...p.textContent.trim().split(/\s+/).flatMap((word, i) => {
+      const span = document.createElement('span');
+      span.className = 'info__word';
+      span.textContent = word;
+      return i ? [' ', span] : [span];
+    }));
+  }
 
   // The email on one line: one wider than the panel is set smaller to fit,
   // down to EMAIL_MIN; past that it breaks after the @ instead.
@@ -816,7 +818,7 @@
   }
 
   function turnInfoIn() {
-    turnRowsIn(info, [...info.querySelectorAll('.info__name, .info__word, .info__list dt, .info__list dd, .info__contact > *')], ROWS_AFTER);
+    turnRowsIn(info, [...info.querySelectorAll('.info__line, .info__word, .info__list dt, .info__list dd, .info__contact > *')], ROWS_AFTER);
   }
 
   function openInfo() {

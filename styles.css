@@ -451,10 +451,10 @@ a {
 /* ---------- Info ---------- */
 
 /* Info comes in from the right over the page, its edge on column 7 (Figma
-   "home-page · info"), frosted over what it covers, and the rest of the page
-   dims behind it. Down it, with no rules: the name in the title's face, the
-   description, tools and services side by side, and the email large at its
-   foot. reel.js opens and closes it. */
+   "info-page"), frosted over what it covers, and the rest of the page dims
+   behind it. Down it, with no rules: the greeting in the title's face and
+   his words at the top; at the foot, services and partners side by side and
+   the email large. reel.js opens and closes it. */
 .info-scrim {
   position: fixed;
   inset: 0;
@@ -528,14 +528,20 @@ a {
   font-variant-numeric: lining-nums;
 }
 
+/* The greeting in pink, a line at a time. */
 .info__name {
   margin: 0;
   font-size: clamp(32px, 3.75vw, 80px);
   line-height: 1;
+  color: var(--color-needle);
+}
+
+.info__line {
+  display: block;
 }
 
 .info__description {
-  margin: 16px 0 0;
+  margin: 24px 0 0;
   font-family: var(--font-text);
   font-weight: 400;
   font-size: 16px;
@@ -543,18 +549,30 @@ a {
   letter-spacing: 0.02em;
 }
 
+.info__description p {
+  margin: 0;
+}
+
 /* Each word turns with its line. */
 .info__word {
   display: inline-block;
 }
 
-/* Tools and services, half the panel each: the name muted, 12 above the
+/* At the foot, his services and partners, then the email 64 below. */
+.info__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+  margin-top: auto;
+  padding-top: 48px;
+}
+
+/* Services and partners, half the panel each: the name muted, 12 above the
    rows, which are 20 apart as in the meta. */
 .info__lists {
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: var(--gutter);
-  margin-top: 80px;
 }
 
 .info__list {
@@ -573,15 +591,13 @@ a {
   margin: 0;
 }
 
-/* The email at the foot, pink under the pointer like Watch; reel.js sets a
-   long one smaller to fit. */
+/* The email, pink under the pointer like Watch; reel.js sets a long one
+   smaller to fit. */
 .info__contact {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
-  margin-top: auto;
-  padding-top: 48px;
 }
 
 .info__contact .label {
@@ -1180,6 +1196,12 @@ a {
     width: calc(8 * var(--col) + 7 * var(--gutter) + var(--margin));
   }
 
+  /* Services above partners, so each service keeps to one line. */
+  .info__lists {
+    grid-template-columns: 1fr;
+    row-gap: 32px;
+  }
+
   .project__side,
   .project__media {
     grid-column: span 6;
@@ -1239,8 +1261,13 @@ a {
     margin-top: 40px;
   }
 
-  .info__lists {
-    margin-top: 48px;
+  /* "I'm Jeff Qiu" on one line, as wide as the panel lets it. */
+  .info__name {
+    font-size: min(calc((100vw - 2 * var(--margin)) * 0.096), 48px);
+  }
+
+  .info__foot {
+    gap: 48px;
   }
 
   .project__bar {
