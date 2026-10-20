@@ -81,7 +81,7 @@
   const name = document.createElement('div');
   name.className = 'loader__name';
   name.setAttribute('aria-hidden', 'true');
-  name.innerHTML = '<span>Jeff.q</span> <span>Production</span>';
+  name.innerHTML = '<span>Jeff.q</span> <span>Productions</span>';
   const row = document.createElement('div');
   row.className = 'loader__row label loader__type';
   const label = document.createElement('span');
@@ -95,7 +95,7 @@
 
   // Its type shows once Syne and Geist are in.
   const fonts = Promise.all([
-    document.fonts.load('800 100px Syne', 'JEFF.Q PRODUCTION'),
+    document.fonts.load('800 100px Syne', 'JEFF.Q PRODUCTIONS'),
     document.fonts.load('500 12px Geist', 'LOADING PICTURE START 0123456789%'),
   ]).catch(() => {});
   fonts.then(() => loader.classList.add('has-fonts'));

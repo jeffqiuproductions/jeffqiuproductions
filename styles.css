@@ -1,4 +1,4 @@
-/* Jeff Production — first screen.
+/* Jeff.Q Productions — first screen.
    Built from the 1280 × 832 Figma frame (home-page, node 1:5). The frame sits
    on a 12-column grid: 40px margins, 16px gutters, 85.33px columns. The front
    card spans columns 3–10, the meta block columns 11–12 and every timeline
@@ -975,9 +975,9 @@ a {
 .loader__name {
   font-family: var(--font-display);
   font-weight: 800;
-  /* Syne is wide: the name is 17.7em long, so this keeps it at about 70% of
+  /* Syne is wide: the name is 18.8em long, so this keeps it at about 70% of
      the window. */
-  font-size: clamp(28px, 3.95vw, 88px);
+  font-size: clamp(28px, 3.73vw, 88px);
   line-height: 1;
   letter-spacing: -0.02em;
   text-transform: uppercase;
@@ -1287,10 +1287,10 @@ a {
     display: none;
   }
 
-  /* The name stacks: Jeff.q over Production. */
+  /* The name stacks: Jeff.q over Productions. */
   .loader__name {
-    /* Production is 11.6em: the width less the gutters. */
-    font-size: calc((100vw - 32px) / 11.7);
+    /* Productions is 12.6em: the width less the gutters. */
+    font-size: calc((100vw - 32px) / 12.7);
     white-space: normal;
   }
 

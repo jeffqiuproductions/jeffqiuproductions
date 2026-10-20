@@ -1,4 +1,4 @@
-/* Jeff Production — the reel and everything that follows it: the title, the
+/* Jeff.Q Productions — the reel and everything that follows it: the title, the
    meta rows, the timeline needle and numbers. */
 
 (() => {
