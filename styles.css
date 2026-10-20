@@ -112,6 +112,77 @@ a {
   padding: 40px var(--margin) 0;
 }
 
+.hero__menu {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Sound, left of Info: the word and four bars, one switch for every film
+   (Figma "sound"). Off, as the site opens, it is grey and still; on it is
+   white, and while a film is heard the bars rise and fall. Pink under the
+   mouse, as Info. Its box reaches 8 past it all round, for a finger. */
+.sound {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -8px;
+  padding: 8px;
+  border: 0;
+  background: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.sound[aria-pressed="true"] {
+  color: var(--color-ink);
+}
+
+.sound:is(:hover, :focus-visible) {
+  color: var(--color-needle);
+}
+
+/* Bars: four, 2 wide and 2 apart, at most 12 high, standing at their rest
+   heights; while a film is heard they rise and fall. */
+.sound__bars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+}
+
+.sound__bars i {
+  width: 2px;
+  height: 12px;
+  background: currentColor;
+  transition: transform 0.3s;
+}
+
+.sound__bars i:nth-child(1) { transform: scaleY(0.45); }
+.sound__bars i:nth-child(2) { transform: scaleY(1); }
+.sound__bars i:nth-child(3) { transform: scaleY(0.7); }
+.sound__bars i:nth-child(4) { transform: scaleY(0.35); }
+
+.sound.is-heard .sound__bars i {
+  animation: sound-bar 0.8s ease-in-out infinite alternate;
+}
+
+.sound.is-heard .sound__bars i:nth-child(2) { animation-duration: 0.55s; animation-delay: -0.2s; }
+.sound.is-heard .sound__bars i:nth-child(3) { animation-duration: 0.7s; animation-delay: -0.45s; }
+.sound.is-heard .sound__bars i:nth-child(4) { animation-duration: 0.95s; animation-delay: -0.3s; }
+
+@keyframes sound-bar {
+  from { transform: scaleY(0.25); }
+  to { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sound.is-heard .sound__bars i {
+    animation: none;
+  }
+}
+
 .brand {
   font-family: var(--font-display);
   font-weight: 800;
@@ -198,33 +269,12 @@ a {
   transform: translateX(-50%);
 }
 
-/* Sound on / off, at the bottom left of the film while it plays, 16 in from
-   the corner; a click on the film does the same. */
-.reel__sound {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-ink);
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-
 .reel__card.is-playing {
   cursor: pointer;
 }
 
-.reel__card.is-playing .reel__sound {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* The playing film's timecode at the bottom right, on Sound's line, hours to
-   frames, after a pink dot that beats like a recording light (reel.js keeps
+/* The playing film's timecode at the bottom right, 16 in from the corner,
+   hours to frames, after a pink dot that beats like a recording light (reel.js keeps
    it). */
 .reel__time {
   position: absolute;
@@ -451,7 +501,7 @@ a {
 /* ---------- Info ---------- */
 
 /* Info comes in from the right over the page, its edge on column 7 (Figma
-   "info-page"), frosted over what it covers, and the rest of the page dims
+   "info-page"), solid over what it covers, and the rest of the page dims
    behind it. Down it, with no rules: the greeting in the title's face and
    his words at the top; at the foot, services and partners side by side and
    the email large. reel.js opens and closes it. */
@@ -484,9 +534,7 @@ a {
   padding: 40px var(--margin);
   overflow-y: auto;
   color: var(--color-ink);
-  background: rgba(23, 23, 23, 0.82);
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
+  background: var(--color-bg);
   transform: translateX(100%);
   visibility: hidden;
   transition: transform 0.7s var(--ease-drop), visibility 0s 0.7s;
@@ -964,8 +1012,7 @@ a {
    at the front, Open project, the right arrow turning to point up and out
    in pink as it grows its shaft. The words turn slowly, faster as the reel
    runs (and back as it runs back); the disc stretches with the reel and its
-   arrows spread while it is held. Over the Sound button it is a pink dot.
-   reel.js moves it. */
+   arrows spread while it is held. reel.js moves it. */
 .cursor {
   position: fixed;
   left: 0;
@@ -1015,11 +1062,6 @@ a {
 
 .cursor[data-state="open"].is-pressed .cursor__orbit {
   scale: 0.94;
-}
-
-.cursor[data-state="dot"] .cursor__orbit {
-  scale: 0.09;
-  background: var(--color-needle);
 }
 
 /* The words: 12px on the circle (reel.js fits them round it). */
@@ -1132,13 +1174,6 @@ a {
   translate: 2px -2px;
 }
 
-/* As a dot, nothing but the pink. */
-.cursor[data-state="dot"] :is(.cursor__ring, .cursor__shaft),
-.cursor[data-state="dot"] .cursor__orbit::before,
-.cursor[data-state="dot"] .cursor__orbit::after {
-  opacity: 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .cursor__ring {
     animation: none;
@@ -1226,6 +1261,11 @@ a {
 
   .hero__bar {
     padding-top: 24px;
+  }
+
+  /* No room beside the name for the word: the bars alone. */
+  .sound__word {
+    display: none;
   }
 
   .loader__brand {

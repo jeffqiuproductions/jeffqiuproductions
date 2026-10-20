@@ -27,7 +27,7 @@
         'Maison Solenne is a self-initiated fashion brand concept exploring the intersection of high-fashion editorial imagery, natural landscapes, and cinematic storytelling. Built around a visual language of fluid silhouettes, rich crimson tones, and sun-drenched desert scenery, the concept creates a world that feels dramatic, refined, and quietly evocative.',
         'Through creative direction and campaign visual development, the project explores how contrasting elements, delicate movement and expansive landscapes, sculptural fabrics and organic forms, intimacy and scale can come together to shape a distinctive brand atmosphere.',
       ],
-      credits: [['Role', 'Creative Director'], ['Music', 'Fable - Jakob Ahlbom']],
+      credits: [['Role', 'Creative Director'], ['Music', 'Jakob Ahlbom']],
       // Frames of the film: the eyes (0:02), the dune at sunset (0:26), the
       // dress (0:30), the veil (0:33).
       stills: [
@@ -46,7 +46,7 @@
         'A destination advertising concept capturing Mongolia as a place of vast landscapes, natural beauty, and discovery. Through cinematic visual storytelling, the project explores how a destination can be presented not just as somewhere to visit, but as an experience to feel.',
         'The concept aims to evoke a sense of wonder and adventure, translating the spirit of travel into a compelling visual narrative that invites audiences to see Mongolia from a fresh perspective.',
       ],
-      credits: [['Role', 'Creative Director'], ['Music', 'Wonder - Henry Miles']],
+      credits: [['Role', 'Creative Director'], ['Music', 'Henry Miles']],
       // Her photos: the eagle hunter, the rider by the river, the yurt at
       // dusk, the archer.
       stills: [
@@ -57,7 +57,7 @@
       ],
     },
     {
-      title: 'Ocean Wonders', type: 'AI film', year: '2025', runtime: '01:49',
+      title: 'Ocean Wonders', type: 'Short film', year: '2025', runtime: '01:49',
       youtube: 'https://youtu.be/wvu-Rvvs_QU',
       // From 0:26, where the music comes in: the dolphin at sunset to the walruses.
       media: { src: 'assets/films/ocean.mp4', poster: 'assets/films/ocean.jpg', volume: 1, fps: 24 },
@@ -65,7 +65,7 @@
         'Ocean Wonders is a mood-driven short film exploring the beauty and mystery of marine life. Moving through vivid forms, subtle movements, and unfamiliar underwater environments, it invites viewers into a world that feels both intimate and immense. Rather than building a linear story, the film lets the imagery convey the wonder of life beneath the water.',
         'Through visual storytelling and atmospheric pacing, the project presents the ocean as a vast world beyond perception. Shifts in scale, light, color, and movement create a sense of quiet discovery, encouraging viewers to slow down and notice more details of an environment that remains largely unseen.',
       ],
-      credits: [['Role', 'Creative Director'], ['Music', 'An Orca’s Travel']],
+      credits: [['Role', 'Creative Director'], ['Music', 'Sam Will']],
       // Her photos: the turtle, the jellyfish, the whale breaching, the
       // narwhal.
       stills: [
@@ -76,7 +76,7 @@
       ],
     },
     {
-      title: 'The Alien Invasion', type: 'AI film', year: '2025', runtime: '01:32',
+      title: 'The Invasion', type: 'Short film', year: '2025', runtime: '01:32',
       youtube: 'https://youtu.be/MEgY6crlBdY',
       // From 0:32: the animals flee, the ships arrive, the attack.
       media: { src: 'assets/films/aliens.mp4', poster: 'assets/films/aliens.jpg', volume: 0.8, fps: 24 },
@@ -84,7 +84,7 @@
         'The Invasion is a mood-driven short film about the tension between familiarity and the unknown. Imagining an extraterrestrial arrival, it builds anticipation, unease, and deep awe. Instead of following a conventional invasion narrative, the film explores the encounter through cinematic imagery and shifts in scale, making the extraordinary feel immediate and unsettling.',
         'Through visual direction, the project explores humanity’s fragile relationship with the unknown. Contrasts between silence and disruption, isolation and vastness, curiosity and fear shape an immersive experience where atmosphere takes precedence over a defined narrative in each scene.',
       ],
-      credits: [['Role', 'Creative Director'], ['Music', 'Majestica - Edgar Hopp']],
+      credits: [['Role', 'Creative Director'], ['Music', 'Edgar Hopp']],
       // Her photos: the ship over the Eiffel Tower, the kid with the ice
       // cream, the kid flying a kite, the ship over the pyramid.
       stills: [
@@ -95,7 +95,7 @@
       ],
     },
     {
-      title: 'Krakatoa 1883', type: 'AI film', year: '2025', runtime: '04:22',
+      title: 'Krakatoa 1883', type: 'Short film', year: '2025', runtime: '04:22',
       youtube: 'https://youtu.be/s6cfM57IhPw',
       // From 0:56: the eruption to "Heard in Perth".
       media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5, fps: 30 },
@@ -103,7 +103,7 @@
         'Krakatoa 1883 is a cinematic interpretation of the Krakatoa eruption, exploring the immense force of a volcanic event. Rather than presenting a historical account, the film uses the eruption as a lens to study scale, destruction, and deep awe. Imagery evokes a world shaped by forces beyond human control.',
         'Through dramatic visual storytelling, the project explores the tension between nature’s beauty and its capacity for devastation. Contrasts between stillness and eruption, distance and impact, fragility and immense power build up intensity, inviting viewers to consider humanity’s place in a world that can transform in an instant.',
       ],
-      credits: [['Role', 'Creative Director'], ['Music', 'Final Frontier']],
+      credits: [['Role', 'Creative Director'], ['Music', 'Hampus Naeselius']],
       // Her photos: the eruption, the carriage in Batavia, the wave, the man
       // on the beach.
       stills: [
@@ -204,14 +204,8 @@
       card.append(media);
       card.classList.add('has-media');
       if (film) {
-        // Sound on / off, over the film while it plays (a click anywhere on
-        // the playing film does the same); its timecode; and how far into it
+        // Over the film while it plays, its timecode; and how far into it
         // the reel has seen.
-        const toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'reel__sound label';
-        toggle.textContent = 'Sound off';
-        toggle.addEventListener('click', toggleSound);
         const time = document.createElement('span');
         time.className = 'reel__time label';
         time.setAttribute('aria-hidden', 'true');
@@ -219,7 +213,7 @@
         const played = document.createElement('span');
         played.className = 'reel__played';
         played.setAttribute('aria-hidden', 'true');
-        card.append(toggle, time, played);
+        card.append(time, played);
       }
     }
     stage.append(card);
@@ -533,8 +527,8 @@
   /* ---------- Films ---------- */
 
   /* The film on the front card plays once the reel is at rest on it, silent
-     until the visitor turns the sound on (Sound off);
-     from then on the films play with it, until they turn it off. The moment
+     until the visitor turns the sound on (Sound, in the bar); from then on
+     the films play with it, until they turn it off. The moment
      the reel moves it stops, and each film keeps its place: whenever the
      reel comes back to it, it picks up where it stopped. While it plays its
      timecode runs at the bottom right, and a pink line along its foot shows
@@ -558,15 +552,16 @@
     })();
   }
 
+  // Sound in the bar is pressed while the visitor wants sound, and moves
+  // while a film is heard.
+  const soundButton = document.querySelector('.sound');
+
   function showSound() {
     films.forEach((video, i) => {
-      if (!video) return;
-      cards[i].classList.toggle('is-playing', video === playing);
-      const on = video === playing && !video.muted;
-      const toggle = cards[i].querySelector('.reel__sound');
-      toggle.textContent = on ? 'Sound on' : 'Sound off';
-      toggle.setAttribute('aria-label', on ? 'Turn the sound off' : 'Turn the sound on');
+      if (video) cards[i].classList.toggle('is-playing', video === playing);
     });
+    soundButton.setAttribute('aria-pressed', String(sound));
+    soundButton.classList.toggle('is-heard', Boolean(playing && !playing.muted));
   }
 
   function playSilent(video) {
@@ -649,12 +644,12 @@
   }
 
   function toggleSound() {
-    if (!playing) return;
-    sound = playing.muted;
-    if (sound) playHeard(playing);
-    else playing.muted = true;
+    sound = !sound;
+    if (playing && sound) playHeard(playing);
+    else if (playing) playing.muted = true;
     showSound();
   }
+  soundButton.addEventListener('click', toggleSound);
 
   // Not while the page is out of sight, nor under the loader.
   document.addEventListener('visibilitychange', () => (document.hidden ? stopFilm() : restFilms()));
@@ -780,7 +775,7 @@
     reel.classList.remove('is-dragging');
     if (!drag.moved) {
       const card = e.target.closest('.reel__card');
-      if (!card || cancelled || e.target.closest('.reel__sound')) return;
+      if (!card || cancelled) return;
       // On the film at the front a click opens its page (the cursor says
       // Open); on another it turns the reel to that one.
       if (card.classList.contains('is-front') && !root.classList.contains('is-moving')) {
@@ -1154,7 +1149,7 @@
 
   /* With a mouse, over the reel a disc with Drag running round it; over the
      film at the front, with the reel at rest, Open project (a click there
-     opens the project's page); over the Sound button a dot. It eases after
+     opens the project's page). It eases after
      the mouse and stretches with the reel as it runs, and its words turn
      with the reel (--roll, in cards run). */
   const cursor = document.querySelector('.cursor');
@@ -1198,7 +1193,6 @@
     if (infoOpen || projectOpen) return '';
     if (dragging && dragging.moved) return 'drag';
     if (!(el instanceof Element) || !el.closest('.reel')) return '';
-    if (el.closest('.reel__sound')) return 'dot';
     if (!root.classList.contains('is-moving') && el.closest('.reel__card.is-front')) return 'open';
     return 'drag';
   }

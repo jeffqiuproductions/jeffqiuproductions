@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Syne:wght@800&display=swap">
   <!-- Geist's ↗ (for "Watch ↗") isn't in its latin subset; this brings just that. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500&text=%E2%86%97&display=swap">
-  <link rel="stylesheet" href="styles.css?v=reel-15">
+  <link rel="stylesheet" href="styles.css?v=reel-16">
   <script>
     // The loader (loader.js) covers the page while it loads. If it never
     // starts, the page shows anyway.
@@ -30,9 +30,17 @@
     <!-- Backdrop: drifting dust behind everything, drawn by backdrop.js. -->
     <canvas class="backdrop" aria-hidden="true"></canvas>
 
+    <!-- The bar: the name, and on the right Sound (one switch for every
+         film; reel.js keeps it) and Info. -->
     <header class="hero__bar">
       <a class="brand" href="./">Jeff.q Production</a>
-      <a class="label link watch info-open" href="#info" aria-controls="info" aria-expanded="false">Info</a>
+      <div class="hero__menu">
+        <button class="sound" type="button" aria-label="Sound" aria-pressed="false">
+          <span class="sound__word label" aria-hidden="true">Sound</span>
+          <span class="sound__bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        </button>
+        <a class="label link watch info-open" href="#info" aria-controls="info" aria-expanded="false">Info</a>
+      </div>
     </header>
 
     <!-- The reel: one card per project, laid out in 3D by reel.js. -->
@@ -140,7 +148,7 @@
   <!-- The cursor over the reel, for a mouse (reel.js): a frosted disc with
        words round it (Drag, or Open project over the film at the front;
        reel.js repeats each phrase to fit), arrows in the middle (the shaft
-       is Open's), a pink dot over Sound. -->
+       is Open's). -->
   <div class="cursor" aria-hidden="true">
     <div class="cursor__body">
       <div class="cursor__orbit">
@@ -150,8 +158,8 @@
     </div>
   </div>
 
-  <script src="reel.js?v=reel-15"></script>
-  <script src="backdrop.js?v=reel-15"></script>
-  <script src="loader.js?v=reel-15"></script>
+  <script src="reel.js?v=reel-16"></script>
+  <script src="backdrop.js?v=reel-16"></script>
+  <script src="loader.js?v=reel-16"></script>
 </body>
 </html>
