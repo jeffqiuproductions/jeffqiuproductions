@@ -43,8 +43,8 @@
       // spire, the eagle, horses, wrestling and the bow, to the yurt at dusk.
       media: { src: 'assets/films/mongolia.mp4', poster: 'assets/films/mongolia.jpg', volume: 0.45, fps: 24 },
       synopsis: [
-        'A destination advertising concept capturing Mongolia as a place of vast landscapes, natural beauty, and discovery. Through cinematic visual storytelling, the project explores how a destination can be presented not just as somewhere to visit, but as an experience to feel.',
-        'The concept aims to evoke a sense of wonder and adventure, translating the spirit of travel into a compelling visual narrative that invites audiences to see Mongolia from a fresh perspective.',
+        'Mongolia is a destination advertising concept exploring the vast landscapes, raw beauty, and sense of discovery associated with travel. Through cinematic imagery and atmospheric pacing, the film presents the destination as more than a place to visit, shaping an experience that feels expansive, remote, and awe-inspiring.',
+        'Rather than relying on a conventional travel narrative, the project focuses on the emotional pull of the landscape. Open horizons, natural textures, and the relationship between scale and solitude inform the visual direction, inviting viewers to imagine a journey shaped by wonder, freedom, and connection with the natural world.',
       ],
       credits: [['Role', 'Creative Director'], ['Music', 'Henry Miles']],
       // Her photos: the eagle hunter, the rider by the river, the yurt at
