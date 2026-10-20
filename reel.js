@@ -38,7 +38,7 @@
       ],
     },
     {
-      title: 'Mongolia', type: 'AI film', year: '2026', runtime: '01:30',
+      title: 'Mongolia', type: 'Spec ad', year: '2026', runtime: '01:30',
       // From 0:43 of the first cut, where the music is fullest: the red rock
       // spire, the eagle, horses, wrestling and the bow, to the yurt at dusk.
       media: { src: 'assets/films/mongolia.mp4', poster: 'assets/films/mongolia.jpg', volume: 0.45, fps: 24 },
@@ -46,7 +46,7 @@
         'A destination advertising concept capturing Mongolia as a place of vast landscapes, natural beauty, and discovery. Through cinematic visual storytelling, the project explores how a destination can be presented not just as somewhere to visit, but as an experience to feel.',
         'The concept aims to evoke a sense of wonder and adventure, translating the spirit of travel into a compelling visual narrative that invites audiences to see Mongolia from a fresh perspective.',
       ],
-      credits: [['Role', 'Director'], ['Music', 'Wonder - Henry Miles']],
+      credits: [['Role', 'Creative Director'], ['Music', 'Wonder - Henry Miles']],
       // Her photos: the eagle hunter, the rider by the river, the yurt at
       // dusk, the archer.
       stills: [
@@ -61,6 +61,19 @@
       youtube: 'https://youtu.be/wvu-Rvvs_QU',
       // From 0:26, where the music comes in: the dolphin at sunset to the walruses.
       media: { src: 'assets/films/ocean.mp4', poster: 'assets/films/ocean.jpg', volume: 1, fps: 24 },
+      synopsis: [
+        'Ocean Wonders is a mood-driven short film exploring the beauty and mystery of marine life. Moving through vivid forms, subtle movements, and unfamiliar underwater environments, it invites viewers into a world that feels both intimate and immense. Rather than building a linear story, the film lets the imagery convey the wonder of life beneath the water.',
+        'Through visual storytelling and atmospheric pacing, the project presents the ocean as a vast world beyond perception. Shifts in scale, light, color, and movement create a sense of quiet discovery, encouraging viewers to slow down and notice more details of an environment that remains largely unseen.',
+      ],
+      credits: [['Role', 'Director'], ['Music', 'An Orca’s Travel']],
+      // Her photos: the turtle, the jellyfish, the whale breaching, the
+      // narwhal.
+      stills: [
+        ['assets/stills/ocean-1.webp', '0% 50%'],
+        'assets/stills/ocean-2.webp',
+        ['assets/stills/ocean-3.webp', '56% 50%'],
+        'assets/stills/ocean-4.webp',
+      ],
     },
     {
       title: 'The Alien Invasion', type: 'AI film', year: '2025', runtime: '01:32',
@@ -917,8 +930,8 @@
   // Word by word, so the lines can turn in one after another.
   const wordsOf = (text) => text.split(' ').flatMap((word, i) => (i ? [' ', make('span', 'project__word', word)] : [make('span', 'project__word', word)]));
 
-  function projectList(rows) {
-    const list = make('dl', 'project__list label');
+  function projectList(rows, className = '') {
+    const list = make('dl', `project__list label ${className}`.trim());
     rows.forEach(([key, value]) => {
       const row = make('div');
       const dd = make('dd');
@@ -959,7 +972,7 @@
     const facts = make('div', 'project__facts');
     facts.append(
       projectList(META.filter((key) => key !== 'watch').map((key) => [key[0].toUpperCase() + key.slice(1), metaValue(project, key)])),
-      projectList([...(project.credits || CREDITS), [platformOf(project)[1], metaValue(project, 'watch')]]),
+      projectList([...(project.credits || CREDITS), [platformOf(project)[1], metaValue(project, 'watch')]], 'project__credits'),
     );
     const synopsis = make('div', 'project__synopsis');
     synopsis.append(...[].concat(project.synopsis || SYNOPSIS).map((text) => {

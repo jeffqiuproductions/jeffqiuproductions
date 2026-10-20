@@ -735,7 +735,8 @@ a {
 }
 
 /* The meta and the credits side by side, on the page's columns: names on
-   1 and 3, values on 2 and 4, rows 20 apart as in the meta. */
+   1 and 3, values on 2 and 4 (the credits' running on to 5), rows 20 apart
+   as in the meta. */
 .project__facts {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -764,6 +765,19 @@ a {
 .project__list dd {
   margin: 0;
   white-space: nowrap;
+}
+
+/* A long credit wraps at the side's edge rather than run into the stills. */
+.project__credits {
+  grid-column: span 3;
+}
+
+.project__credits div {
+  grid-template-columns: calc((100% - 2 * var(--gutter)) / 3) minmax(0, 1fr);
+}
+
+.project__credits dd {
+  white-space: normal;
 }
 
 .project__synopsis {
