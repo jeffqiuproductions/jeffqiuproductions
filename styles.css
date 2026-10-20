@@ -1071,11 +1071,11 @@ a {
   transition: scale 0.45s var(--ease-out), background-color 0.3s;
 }
 
-.cursor:is([data-state="drag"], [data-state="open"]) .cursor__orbit {
+.cursor:is([data-state="drag"], [data-state="open"], [data-state="close"]) .cursor__orbit {
   scale: 1;
 }
 
-.cursor[data-state="drag"].is-pressed .cursor__orbit {
+.cursor:is([data-state="drag"], [data-state="close"]).is-pressed .cursor__orbit {
   scale: 0.9;
 }
 
@@ -1111,12 +1111,14 @@ a {
   transition: opacity 0.3s;
 }
 
-.cursor__words--open,
-.cursor[data-state="open"] .cursor__words--drag {
+/* Only the words for what the disc is over show. */
+.cursor__words {
   opacity: 0;
 }
 
-.cursor[data-state="open"] .cursor__words--open {
+.cursor[data-state="drag"] .cursor__words--drag,
+.cursor[data-state="open"] .cursor__words--open,
+.cursor[data-state="close"] .cursor__words--close {
   opacity: 1;
 }
 
@@ -1157,6 +1159,25 @@ a {
 .cursor[data-state="open"] .cursor__orbit::before {
   opacity: 0;
   translate: 4px 0;
+}
+
+/* Close: Drag's arrows turn to point at each other. */
+.cursor[data-state="close"] .cursor__orbit::before {
+  rotate: 45deg;
+  translate: -2px 0;
+}
+
+.cursor[data-state="close"] .cursor__orbit::after {
+  rotate: -135deg;
+  translate: 2px 0;
+}
+
+.cursor[data-state="close"].is-pressed .cursor__orbit::before {
+  translate: 1px 0;
+}
+
+.cursor[data-state="close"].is-pressed .cursor__orbit::after {
+  translate: -1px 0;
 }
 
 /* The head, its corner on the shaft's tip (5px up and right of the middle). */
@@ -1207,6 +1228,88 @@ a {
 
 .has-cursor:not(.is-moving) .reel__card.is-front:hover .reel__media {
   scale: 1.04;
+}
+
+/* ---------- Pointer ---------- */
+
+/* The mouse's own mark everywhere the disc isn't: a viewfinder's four
+   corners round a point. On a link they close round its words, as a camera
+   does when it focuses, and blink twice, and the words go pink (cursor.js
+   moves it and sizes it). */
+.has-pointer:not(.is-loading),
+.has-pointer:not(.is-loading) * {
+  cursor: none !important;
+}
+
+.pointer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 91;
+  display: none;
+  pointer-events: none;
+}
+
+.has-pointer .pointer {
+  display: block;
+}
+
+/* 16 square, corners 5 long. */
+.pointer__frame {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  translate: -50% -50%;
+  color: var(--color-ink);
+  mix-blend-mode: difference;
+  transition: opacity 0.25s, scale 0.35s var(--ease-out);
+}
+
+.pointer.is-away .pointer__frame {
+  opacity: 0;
+  scale: 0;
+}
+
+.pointer.is-pressed .pointer__frame {
+  scale: 0.75;
+}
+
+.pointer.is-aimed .pointer__frame {
+  color: var(--color-needle);
+  mix-blend-mode: normal;
+}
+
+.pointer__frame i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border: 0 solid currentColor;
+}
+
+.pointer__frame i:nth-child(1) { left: 0; top: 0; border-width: 1px 0 0 1px; }
+.pointer__frame i:nth-child(2) { right: 0; top: 0; border-width: 1px 1px 0 0; }
+.pointer__frame i:nth-child(3) { right: 0; bottom: 0; border-width: 0 1px 1px 0; }
+.pointer__frame i:nth-child(4) { left: 0; bottom: 0; border-width: 0 0 1px 1px; }
+
+/* The point in the middle. */
+.pointer__frame::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 2px;
+  margin: -1px 0 0 -1px;
+  background: currentColor;
+  transition: opacity 0.2s;
+}
+
+.pointer.is-aimed .pointer__frame::after {
+  opacity: 0;
+}
+
+.is-aimed:is(a, button) {
+  color: var(--color-needle);
 }
 
 /* ---------- Smaller windows ---------- */

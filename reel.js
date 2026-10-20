@@ -283,7 +283,7 @@
     const lineCol = (lineWidth - (N - 1) * gutter) / N;
     const gridUnit = (lineWidth - 11 * gutter) / 12 + gutter;
     const ticksPer = Math.max(2, Math.round(((lineCol + gutter) / gridUnit) * TICKS));
-    geo = { w, gap: gutter, fold, cos, sin, perspective, dragUnit, line: { width: lineWidth, col: lineCol, unit: lineCol + gutter, ticks: ticksPer } };
+    geo = { w, h, gap: gutter, fold, cos, sin, perspective, dragUnit, line: { width: lineWidth, col: lineCol, unit: lineCol + gutter, ticks: ticksPer } };
 
     drawTicks();
     fitTitle(title.lastElementChild);
@@ -745,6 +745,7 @@
   // Drag the reel; a click on a side card brings it to the front.
   reel.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
+    if (e.pointerType === 'mouse' && !zoneAt(e.clientY, e.target)) return;
     dragging = { id: e.pointerId, x: e.clientX, y: e.clientY, from: Math.round(target), start: target, moved: false, trail: [] };
   });
 
@@ -1147,9 +1148,10 @@
 
   /* ---------- Cursor ---------- */
 
-  /* With a mouse, over the reel a disc with Drag running round it; over the
-     film at the front, with the reel at rest, Open project (a click there
-     opens the project's page). It eases after
+  /* With a mouse, over the reel's zone a disc with Drag running round it;
+     over the film at the front, with the reel at rest, Open project (a click
+     there opens the project's page); over the page dimmed behind Info,
+     Close. It eases after
      the mouse and stretches with the reel as it runs, and its words turn
      with the reel (--roll, in cards run). */
   const cursor = document.querySelector('.cursor');
@@ -1189,10 +1191,25 @@
   }
   document.fonts.ready.then(() => (ringFitted = false));
 
+  /* Where the reel answers the mouse: a strip edge to edge from the front
+     card's top to halfway between its foot and the title. There the disc
+     shows and a drag starts; above and below it, the pointer, and a press
+     does nothing. */
+  function zoneAt(y, el) {
+    if (!(el instanceof Element) || !el.closest('.reel')) return false;
+    const box = reel.getBoundingClientRect();
+    const top = box.top + (box.height - geo.h) / 2;
+    const bottom = box.bottom - (box.height - geo.h) / 4;
+    return y >= top && y <= bottom;
+  }
+
   function stateAt(el) {
-    if (infoOpen || projectOpen) return '';
+    // With Info open, Close over the dimmed page left of it (a click there
+    // closes it).
+    if (infoOpen) return pointer.x < innerWidth - info.offsetWidth ? 'close' : '';
+    if (projectOpen) return '';
     if (dragging && dragging.moved) return 'drag';
-    if (!(el instanceof Element) || !el.closest('.reel')) return '';
+    if (!zoneAt(pointer.y, el)) return '';
     if (!root.classList.contains('is-moving') && el.closest('.reel__card.is-front')) return 'open';
     return 'drag';
   }
