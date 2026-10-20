@@ -19,7 +19,7 @@
   const PROJECTS = [
     {
       title: 'Maison Solenne', type: 'Spec ad', year: '2026', runtime: '00:42',
-      instagram: 'https://www.instagram.com/reel/DeR8tkwp-Pf/',
+      youtube: 'https://youtu.be/brSsx2kpb-Q',
       // A fashion ad for a made-up brand. From the start (the whole film is 42
       // seconds): the closed eyes to the dune's crest at sunset.
       media: { src: 'assets/films/desert.mp4', poster: 'assets/films/desert.jpg', volume: 0.95, fps: 24 },
