@@ -24,6 +24,12 @@
       media: { src: 'assets/films/desert.mp4', poster: 'assets/films/desert.jpg', volume: 0.95, fps: 24 },
     },
     {
+      title: 'Mongolia', type: 'AI film', year: '2026', runtime: '01:30',
+      // From 0:43 of the first cut, where the music is fullest: the red rock
+      // spire, the eagle, horses, wrestling and the bow, to the yurt at dusk.
+      media: { src: 'assets/films/mongolia.mp4', poster: 'assets/films/mongolia.jpg', volume: 0.45, fps: 24 },
+    },
+    {
       title: 'Ocean Wonders', type: 'AI film', year: '2025', runtime: '01:49',
       youtube: 'https://youtu.be/wvu-Rvvs_QU',
       // From 0:26, where the music comes in: the dolphin at sunset to the walruses.
@@ -41,8 +47,6 @@
       // From 0:56: the eruption to "Heard in Perth".
       media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5, fps: 30 },
     },
-    { title: 'Adipiscing',  type: 'Short film', year: '2025', runtime: '11:20' },
-    { title: 'Elit sed',    type: 'Promo',      year: '2024', runtime: '00:30' },
   ];
 
   const N = PROJECTS.length;
