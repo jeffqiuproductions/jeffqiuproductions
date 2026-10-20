@@ -779,6 +779,11 @@ a {
   margin: 0;
 }
 
+/* A blank line between paragraphs. */
+.project__synopsis p + p {
+  margin-top: calc(21em / 16);
+}
+
 /* The stills over seven columns: one across, then two (four columns and
    three), and again. */
 .project__media {

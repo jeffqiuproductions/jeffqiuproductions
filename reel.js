@@ -13,8 +13,9 @@
      placeholders ("Video 16:9", "Image 1:1"). Each film is 40 seconds of the
      whole one, cut to the card's shape. For its page (a click on its film at the front)
      a project can have `synopsis`, `credits` ([name, value] pairs) and
-     `stills` (pictures); until it does, the page has Lorem ipsum and the
-     poster, cropped closer, stands in for stills. */
+     `stills` (pictures, or [picture, the part of it its box shows]); until
+     it does, the page has Lorem ipsum and the poster, cropped closer, stands
+     in for stills. */
   const PROJECTS = [
     {
       title: 'Maison Solenne', type: 'Spec ad', year: '2026', runtime: '00:42',
@@ -22,6 +23,19 @@
       // A fashion ad for a made-up brand. From the start (the whole film is 42
       // seconds): the closed eyes to the dune's crest at sunset.
       media: { src: 'assets/films/desert.mp4', poster: 'assets/films/desert.jpg', volume: 0.95, fps: 24 },
+      synopsis: [
+        'Maison Solenne is a self-initiated fashion brand concept exploring the intersection of high-fashion editorial imagery, natural landscapes, and cinematic storytelling. Built around a visual language of fluid silhouettes, rich crimson tones, and sun-drenched desert scenery, the concept creates a world that feels dramatic, refined, and quietly evocative.',
+        'Through creative direction and campaign visual development, the project explores how contrasting elements, delicate movement and expansive landscapes, sculptural fabrics and organic forms, intimacy and scale can come together to shape a distinctive brand atmosphere.',
+      ],
+      credits: [['Role', 'Creative Director'], ['Music', 'Fable - Jakob Ahlbom']],
+      // Frames of the film: the eyes (0:02), the dune at sunset (0:26), the
+      // dress (0:30), the veil (0:33).
+      stills: [
+        'assets/stills/maison-1.jpg',
+        ['assets/stills/maison-2.jpg', '55% 50%'],
+        'assets/stills/maison-3.jpg',
+        'assets/stills/maison-4.jpg',
+      ],
     },
     {
       title: 'Mongolia', type: 'AI film', year: '2026', runtime: '01:30',
@@ -865,14 +879,14 @@
      from the bottom with Info's motion, the reel dimming behind it, its rows
      turning in as Info's do (Figma "project-page"). On the left, staying put:
      the number and title, the meta and credits side by side, the synopsis;
-     on the right, scrolling by: the stills. Close or Esc closes it. The
-     films wait while it is open. */
+     on the right, scrolling by: the stills. Where to watch the film closes
+     the credits. Close or Esc closes it. The films wait while it is open. */
   const SYNOPSIS = [
     'Lorem ipsum dolor sit amet consectetur. Feugiat egestas tristique ac tellus tempus est metus natoque. Elit vitae dignissim at eget egestas interdum aliquet arcu. Sit justo bibendum est mauris pretium. Et a aliquam mattis leo lacus enim.',
     'A ullamcorper nulla lacus nulla eget ut justo velit. Tincidunt venenatis arcu orci placerat adipiscing rhoncus donec non malesuada. Lorem quis elit at turpis. Nulla egestas tellus vel aliquet fames enim iaculis a. Elementum vitae aliquam velit porttitor faucibus sapien. Lobortis ante nunc lectus at molestie lobortis. Eget facilisi quam nunc nulla.',
     'Volutpat quam tincidunt ac libero urna rhoncus ante quis nulla. Eget enim sed sagittis nisi tristique vivamus enim risus enim. Molestie id gravida varius tempus. In ipsum sodales bibendum tempor vitae lobortis. Massa in semper nunc nibh quam ac. Pellentesque fames enim massa scelerisque viverra ullamcorper nisl euismod amet. Viverra ornare vulputate lacus vestibulum ac enim eget pellentesque. Est justo aliquam phasellus quis amet.',
   ];
-  const CREDITS = [['Role', 'Director'], ['Client', 'Lorem ipsum'], ['Tools', 'Lorem ipsum'], ['Music', 'Lorem ipsum']];
+  const CREDITS = [['Role', 'Director'], ['Music', 'Lorem ipsum']];
   const CROPS = [[1, '50% 50%'], [2.2, '22% 62%'], [2.6, '80% 45%'], [1.6, '60% 30%']]; // [zoom, at]
 
   const projectPage = document.querySelector('.project');
@@ -906,14 +920,19 @@
   // it (a grey card without one).
   function stillsOf(project) {
     const poster = project.media && (project.media.poster || (/\.(jpe?g|png|webp)$/i.test(project.media.src) ? project.media.src : null));
-    const pictures = project.stills ? project.stills.map((src) => [src]) : CROPS.map((crop) => [poster, ...crop]);
-    return pictures.map(([src, zoom = 1, at]) => {
+    const pictures = project.stills
+      ? project.stills.map((still) => {
+        const [src, at] = [].concat(still);
+        return [src, at && { objectPosition: at }];
+      })
+      : CROPS.map(([zoom, at]) => [poster, zoom !== 1 && { transform: `scale(${zoom})`, transformOrigin: at }]);
+    return pictures.map(([src, style]) => {
       const box = make('div', 'project__still');
       if (src) {
         const img = make('img');
         img.src = src;
         img.alt = '';
-        if (zoom !== 1) Object.assign(img.style, { transform: `scale(${zoom})`, transformOrigin: at });
+        if (style) Object.assign(img.style, style);
         box.append(img);
       }
       return box;
@@ -926,8 +945,8 @@
     heading.append(...wordsOf(project.title));
     const facts = make('div', 'project__facts');
     facts.append(
-      projectList(META.map((key) => [key === 'watch' ? platformOf(project)[1] : key[0].toUpperCase() + key.slice(1), metaValue(project, key)])),
-      projectList(project.credits || CREDITS),
+      projectList(META.filter((key) => key !== 'watch').map((key) => [key[0].toUpperCase() + key.slice(1), metaValue(project, key)])),
+      projectList([...(project.credits || CREDITS), [platformOf(project)[1], metaValue(project, 'watch')]]),
     );
     const synopsis = make('div', 'project__synopsis');
     synopsis.append(...[].concat(project.synopsis || SYNOPSIS).map((text) => {
