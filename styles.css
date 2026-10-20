@@ -923,8 +923,8 @@ a {
 
 /* ---------- Loader ---------- */
 
-/* A countdown leader over the page while it loads (loader.js). The black is
-   CSS until the leader's canvas takes over; the page waits underneath. */
+/* The name in dust on the plain black while the page loads (loader.js); the
+   page waits underneath until the black lifts. */
 .loader {
   position: fixed;
   inset: 0;
@@ -944,10 +944,6 @@ a {
   display: none;
 }
 
-.loader.has-canvas {
-  background: none;
-}
-
 .loader__canvas {
   position: absolute;
   inset: 0;
@@ -965,31 +961,54 @@ a {
   opacity: 1;
 }
 
-/* The brand where the page has it. */
-.loader__brand {
-  position: absolute;
-  top: 40px;
-  left: var(--margin);
-}
-
-.loader__number {
+/* The name in the middle, with Loading and the count under it, as wide as
+   the name. */
+.loader__centre {
   position: absolute;
   left: 50%;
   top: 50%;
-  font-family: var(--font-display);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
   transform: translate(-50%, -50%);
 }
 
-.loader__label {
-  position: absolute;
-  left: 50%;
+/* Set as type for the canvas to draw from; without it, the type fills from
+   the left as it loads. */
+.loader__name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  /* Syne is wide: the name is 17.7em long, so this keeps it at about 70% of
+     the window. */
+  font-size: clamp(28px, 3.95vw, 88px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  color: transparent;
+  background: linear-gradient(90deg, var(--color-ink) var(--fill, 0%), #3a3936 var(--fill, 0%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.loader.has-fonts .loader__name {
+  opacity: 1;
+}
+
+.loader.has-canvas .loader__name {
+  background: none;
+}
+
+.loader__row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
   color: var(--color-muted);
   white-space: nowrap;
-  transform: translateX(-50%);
+}
+
+.loader__number {
+  font-variant-numeric: tabular-nums;
 }
 
 /* While loading, the page waits under the loader, which brings it in. */
@@ -1268,8 +1287,15 @@ a {
     display: none;
   }
 
-  .loader__brand {
-    top: 24px;
+  /* The name stacks: Jeff.q over Production. */
+  .loader__name {
+    /* Production is 11.6em: the width less the gutters. */
+    font-size: calc((100vw - 32px) / 11.7);
+    white-space: normal;
+  }
+
+  .loader__row {
+    margin-top: 16px;
   }
 
   .title__text {

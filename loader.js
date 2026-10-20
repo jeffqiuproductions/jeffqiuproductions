@@ -1,15 +1,19 @@
-/* Loader — a film countdown leader drawn in dust on the black while the page
-   loads: a crosshair, two rings and a hand that sweeps once round from 0 to
-   100%, the swept part of the circle filling with grains. At 100 it reads
-   PICTURE START and the circle opens like an iris onto the page, which comes
-   in from under it. Without WebGL it is the count on the black, fading out. */
+/* Loader — the name in the middle of the plain black, made of dust like the
+   backdrop's. Its letters start as faint dust inside a dotted outline and
+   fill from the left with bright grains as the page loads, a brighter front
+   running ahead of the fill. At 100 the grains blow away on the drift, the
+   black lifts and the page comes in from under it. Without WebGL the name
+   fills as plain type and fades out. */
 
 (() => {
-  const MIN_TIME = 3200;    // ms the count takes at least, so it is seen
+  const MIN_TIME = 3200;    // ms the fill takes at least, so it is seen
   const MAX_WAIT = 6000;    // ms it waits for any one thing at most
-  const HOLD = 450;         // ms on PICTURE START before the iris opens
-  const IRIS = 1400;        // ms for the iris to open
-  const DRIFT = 0.018;      // how fast the grains drift (as the backdrop's)
+  const HOLD = 500;         // ms the name stays full before it goes
+  const SCATTER = 1300;     // ms for its grains to blow away
+  const PAGE = 450;         // ms into that when the black lifts off the page
+  const LIFT = 800;         // ms the black takes to lift
+  const SPEED = 0.018;      // the backdrop's drift and warp (backdrop.js), so
+  const SCALE = 0.7;        // the letters' grains move as its dust does
 
   const root = document.documentElement;
   const loader = document.querySelector('.loader');
@@ -69,33 +73,34 @@
 
   /* ---------- Screen ---------- */
 
-  const brand = document.createElement('div');
-  brand.className = 'brand loader__brand loader__type';
-  brand.textContent = 'Jeff.q Production';
-  const number = document.createElement('div');
-  number.className = 'loader__number loader__type';
-  number.textContent = '0';
-  const label = document.createElement('div');
-  label.className = 'label loader__label loader__type';
+  /* The name is set in the page as type (a word a span, so a phone can stack
+     them) and the canvas draws it from where its letters fall; under it,
+     Loading and the count, as wide as the name. */
+  const centre = document.createElement('div');
+  centre.className = 'loader__centre';
+  const name = document.createElement('div');
+  name.className = 'loader__name';
+  name.setAttribute('aria-hidden', 'true');
+  name.innerHTML = '<span>Jeff.q</span> <span>Production</span>';
+  const row = document.createElement('div');
+  row.className = 'loader__row label loader__type';
+  const label = document.createElement('span');
   label.textContent = 'Loading';
-  loader.append(brand, number, label);
+  const number = document.createElement('span');
+  number.className = 'loader__number';
+  number.textContent = '0%';
+  row.append(label, number);
+  centre.append(name, row);
+  loader.append(centre);
 
   // Its type shows once Syne and Geist are in.
-  Promise.all([
-    document.fonts.load('800 100px Syne', '0123456789'),
-    document.fonts.load('500 12px Geist', 'LOADING PICTURE START'),
-  ]).catch(() => {}).then(() => loader.classList.add('has-fonts'));
+  const fonts = Promise.all([
+    document.fonts.load('800 100px Syne', 'JEFF.Q PRODUCTION'),
+    document.fonts.load('500 12px Geist', 'LOADING PICTURE START 0123456789%'),
+  ]).catch(() => {});
+  fonts.then(() => loader.classList.add('has-fonts'));
 
-  let radius = 0;
-  function place() {
-    radius = Math.min(innerWidth, innerHeight) * 0.3;
-    number.style.fontSize = `${radius * 0.62}px`;
-    label.style.top = `${innerHeight / 2 + radius + 28}px`;
-  }
-  place();
-  addEventListener('resize', place);
-
-  /* ---------- Leader ---------- */
+  /* ---------- Name in dust ---------- */
 
   const VERTEX = `
     attribute vec2 position;
@@ -104,15 +109,17 @@
 
   const FRAGMENT = `
     precision highp float;
-    uniform vec2 uRes;      // device px
+    uniform sampler2D uMask;  // r: the letters, g: their outline, b: a soft glow round them
+    uniform vec2 uRes;        // device px
     uniform float uDpr;
-    uniform float uTime;
-    uniform float uScale;   // css px per unit of the drift's warp
-    uniform float uR;       // circle radius, css px
-    uniform float uSweep;   // 0…1 of a turn
-    uniform float uLines;   // the marks drawing in, 0…1
-    uniform float uHole;    // iris radius, css px
-    uniform float uCover;
+    uniform float uTime;      // the backdrop's clock
+    uniform float uSec;       // seconds, for the fill's front
+    uniform float uScale;     // css px per unit of the backdrop's warp
+    uniform vec4 uBox;        // the letters' ink, device px, y up: left, bottom, right, top
+    uniform float uFill;      // 0…1
+    uniform float uShow;      // the empty letters coming in, 0…1
+    uniform float uOut;       // the grains blowing away, 0…1
+    uniform float uFade;      // 1, or less as it fades out instead
 
     // 3D simplex noise — Ian McEwan, Stefan Gustavson (Ashima Arts), MIT.
     vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -169,45 +176,51 @@
       return fract((p3.x + p3.y) * p3.z);
     }
 
-    const vec3 BG = vec3(23.0) / 255.0;   // --color-bg
-    const float TAU = 6.2831853;
+    const vec3 INK = vec3(241.0, 239.0, 233.0) / 255.0;   // --color-ink
 
     void main() {
       vec2 f = gl_FragCoord.xy;
-      vec2 c = (f - 0.5 * uRes) / uDpr;   // css px from the centre, y up
-      float r = length(c);
 
-      // The grains drift on a slow warp, as the backdrop's do.
+      // The backdrop's warp: its grains ride it, and so do these.
       vec2 p = f / uDpr / uScale;
       vec2 q = vec2(snoise(vec3(p * 0.8, uTime)), snoise(vec3(p * 0.8 + 7.3, uTime + 3.1)));
-      vec2 cell = floor(f + q * 90.0 * uDpr);
+      vec2 grain = floor(f + q * 90.0 * uDpr);
 
-      // Crosshair and two rings; the hand, and the circle filled behind it.
-      float inside = 1.0 - smoothstep(uR - 1.0, uR, r);
-      float ang = fract(atan(c.x, c.y) / TAU + 1.0);
-      float swept = inside * step(ang, uSweep);
-      float rings = (1.0 - smoothstep(0.5, 1.5, abs(r - uR))) + (1.0 - smoothstep(0.5, 1.5, abs(r - uR * 0.86)));
-      float cross = (1.0 - smoothstep(0.5, 1.5, abs(c.x))) + (1.0 - smoothstep(0.5, 1.5, abs(c.y)));
-      vec2 dir = vec2(sin(uSweep * TAU), cos(uSweep * TAU));
-      float hand = step(0.0, dot(c, dir)) * inside * (1.0 - smoothstep(0.5, 2.0, abs(c.x * dir.y - c.y * dir.x)));
-      float marks = (rings + cross) * uLines;
-      hand *= uLines;
+      // As it goes, the name blows off up and along the warp.
+      vec2 from = f - (q * 160.0 + vec2(40.0, 110.0)) * uOut * uOut * uDpr;
+      vec3 m = texture2D(uMask, vec2(from.x / uRes.x, 1.0 - from.y / uRes.y)).rgb;
+      if (m.r + m.g + m.b < 0.004) {
+        gl_FragColor = vec4(0.0);
+        return;
+      }
 
-      // The iris: a hole from the centre, with a bright dusty rim.
-      float open = step(0.5, uHole);
-      float edge = (r - uHole) / 4.0;
-      float rim = open * exp(-edge * edge);
+      // The backdrop's filaments, wider, run through the letters.
+      float vein = pow(1.0 - abs(snoise(vec3(p + 0.55 * q, uTime * 0.7))), 9.0);
 
-      float lines = min(marks + hand + rim, 1.0);
-      float density = swept * 0.16 + 0.6 * marks + 0.95 * hand + 0.8 * rim;
-      float lit = step(hash(cell), density);
-      float a = lit * (0.35 + 0.65 * hash(cell + 17.0)) * max(0.42 * swept, 0.85 * lines);
-      float cover = uCover * mix(1.0, smoothstep(uHole - 1.0, uHole + 1.0, r), open);
-      gl_FragColor = vec4(mix(BG, vec3(1.0), clamp(a, 0.0, 1.0)) * cover, cover);
+      // How far this point is behind the fill's front, in css px. The front
+      // wavers as it runs from the name's left edge to its right.
+      float wave = 18.0;
+      float x = mix(uBox.x / uDpr - 2.0 * wave, uBox.z / uDpr + 2.0 * wave, uFill)
+              + wave * snoise(vec3(f.y / uDpr / 70.0, uSec * 0.45, 1.7));
+      float behind = x - f.x / uDpr;
+      float fill = smoothstep(-1.5, 1.5, behind);
+      float front = exp(-behind * behind / 60.0) * smoothstep(0.0, 0.04, uFill);
+
+      float empty = (0.05 + 0.12 * vein) * uShow;
+      float full = 0.62 + 0.36 * vein;
+      float density = m.r * (mix(empty, full, fill) + 0.55 * front)
+                    + m.g * (1.0 - fill) * 0.5 * uShow
+                    + m.b * 0.03 * fill;
+      float lit = step(hash(grain), density);
+      // Each grain goes at its own moment as the name blows away.
+      lit *= step(uOut * 1.2, hash(grain + 51.0));
+      float bright = (0.45 + 0.55 * hash(grain + 17.0)) * mix(0.45, 1.0, max(fill, front));
+      float a = clamp(lit * bright * uFade * (1.0 - 0.5 * uOut), 0.0, 1.0);
+      gl_FragColor = vec4(INK * a, a);
     }
   `;
 
-  function leader() {
+  function dust() {
     const canvas = document.createElement('canvas');
     canvas.className = 'loader__canvas';
     canvas.setAttribute('aria-hidden', 'true');
@@ -244,26 +257,91 @@
     gl.enableVertexAttribArray(position);
     gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 
+    gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
     const where = {};
-    const set = (name, ...v) => {
-      if (!(name in where)) where[name] = gl.getUniformLocation(program, name);
-      gl[`uniform${v.length}f`](where[name], ...v);
+    const set = (key, ...v) => {
+      if (!(key in where)) where[key] = gl.getUniformLocation(program, key);
+      gl[`uniform${v.length}f`](where[key], ...v);
     };
 
-    return {
-      draw(values) {
-        const dpr = Math.min(devicePixelRatio || 1, 2);
-        const width = Math.round(canvas.clientWidth * dpr);
-        const height = Math.round(canvas.clientHeight * dpr);
-        if (canvas.width !== width || canvas.height !== height) {
-          canvas.width = width;
-          canvas.height = height;
-          gl.viewport(0, 0, width, height);
+    /* The mask: the name drawn where its letters fall on the page, the fill
+       in red, a 2px outline in green and a soft glow in blue. */
+    const mask = document.createElement('canvas');
+    const pen = mask.getContext('2d');
+    let dpr = 1;
+    let painted = false;
+
+    function paint() {
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      const width = Math.round(canvas.clientWidth * dpr);
+      const height = Math.round(canvas.clientHeight * dpr);
+      canvas.width = mask.width = width;
+      canvas.height = mask.height = height;
+      gl.viewport(0, 0, width, height);
+
+      const type = getComputedStyle(name);
+      const size = parseFloat(type.fontSize) * dpr;
+      pen.font = `${type.fontWeight} ${size}px ${type.fontFamily}`;
+      pen.fillStyle = '#000';
+      pen.fillRect(0, 0, width, height);
+      pen.globalCompositeOperation = 'lighter';
+      pen.lineJoin = 'round';
+
+      // Each letter where the page sets it, on its word's baseline.
+      const box = [Infinity, Infinity, -Infinity, -Infinity];
+      const letters = [];
+      const range = document.createRange();
+      for (const word of name.children) {
+        const text = word.firstChild;
+        const rect = word.getBoundingClientRect();
+        const metrics = pen.measureText(text.data);
+        const ascent = metrics.fontBoundingBoxAscent ?? metrics.actualBoundingBoxAscent;
+        const descent = metrics.fontBoundingBoxDescent ?? metrics.actualBoundingBoxDescent;
+        const baseline = rect.top * dpr + (rect.height * dpr - ascent - descent) / 2 + ascent;
+        for (let i = 0; i < text.length; i++) {
+          range.setStart(text, i);
+          range.setEnd(text, i + 1);
+          const x = range.getBoundingClientRect().left * dpr;
+          const char = text.data[i].toUpperCase();
+          const ink = pen.measureText(char);
+          letters.push([char, x, baseline]);
+          box[0] = Math.min(box[0], x - ink.actualBoundingBoxLeft);
+          box[1] = Math.min(box[1], baseline - ink.actualBoundingBoxAscent);
+          box[2] = Math.max(box[2], x + ink.actualBoundingBoxRight);
+          box[3] = Math.max(box[3], baseline + ink.actualBoundingBoxDescent);
         }
-        set('uRes', width, height);
-        set('uDpr', dpr);
-        set('uScale', Math.max(canvas.clientWidth, canvas.clientHeight) * 0.7);
-        for (const [name, value] of Object.entries(values)) set(name, value);
+      }
+      const draw = (how) => letters.forEach(([char, x, y]) => how(char, x, y));
+      pen.fillStyle = pen.shadowColor = '#00f';
+      pen.shadowBlur = 28 * dpr;
+      draw((c, x, y) => pen.fillText(c, x, y));
+      pen.shadowBlur = 0;
+      pen.shadowColor = 'transparent';
+      pen.fillStyle = '#f00';
+      draw((c, x, y) => pen.fillText(c, x, y));
+      pen.strokeStyle = '#0f0';
+      pen.lineWidth = 2 * dpr;
+      draw((c, x, y) => pen.strokeText(c, x, y));
+      pen.globalCompositeOperation = 'source-over';
+
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, mask);
+      set('uRes', width, height);
+      set('uDpr', dpr);
+      set('uScale', Math.max(canvas.clientWidth, canvas.clientHeight) * SCALE);
+      set('uBox', box[0], height - box[3], box[2], height - box[1]);
+      painted = true;
+    }
+
+    return {
+      paint,
+      draw(values) {
+        if (!painted) return;
+        for (const [key, value] of Object.entries(values)) set(key, value);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
         loader.classList.add('has-canvas');
       },
@@ -277,11 +355,18 @@
 
   let scene = null;
   try {
-    scene = leader();
+    scene = dust();
   } catch (error) {
     console.error(error);
     scene = null;
   }
+  let shownAt = 0;
+  const repaint = () => scene && scene.paint();
+  fonts.then(() => {
+    repaint();
+    shownAt = performance.now();
+    addEventListener('resize', repaint);
+  });
 
   /* ---------- Page entrance ---------- */
 
@@ -316,7 +401,7 @@
   let shown = -1;
 
   function finish() {
-    removeEventListener('resize', place);
+    removeEventListener('resize', repaint);
     if (scene) scene.release();
     loader.classList.remove('is-open');
     loader.hidden = true;
@@ -328,8 +413,9 @@
     const n = Math.round(v * 100);
     if (n !== shown) {
       shown = n;
-      number.textContent = n;
+      number.textContent = `${n}%`;
       loader.setAttribute('aria-valuenow', n);
+      name.style.setProperty('--fill', `${n}%`);
     }
     if (v >= 1 && !doneAt) {
       doneAt = now;
@@ -337,28 +423,32 @@
     }
     if (doneAt && !leaving && now - doneAt >= HOLD) {
       leaving = now;
-      const out = { duration: 350, fill: 'forwards' };
-      number.animate([{ opacity: 1, transform: 'translate(-50%, -50%)' }, { opacity: 0, transform: 'translate(-50%, -50%) scale(0.9)' }], out);
-      label.animate([{ opacity: 1 }, { opacity: 0 }], out);
+      row.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: 'forwards' });
+      loader.animate([{ backgroundColor: 'rgb(23 23 23 / 0)' }], {
+        duration: reduceMotion.matches ? SCATTER : LIFT,
+        delay: reduceMotion.matches ? 0 : PAGE,
+        easing: 'ease-in-out',
+        fill: 'forwards',
+      });
       loader.style.pointerEvents = 'none';
-      showPage();
     }
+    if (leaving && root.classList.contains('is-loading') && now - leaving >= (reduceMotion.matches ? 0 : PAGE)) showPage();
 
-    // The iris opens; with reduced motion (or no WebGL) the leader fades.
-    const k = leaving ? clamp((now - leaving) / IRIS) : 0;
-    const iris = scene && !reduceMotion.matches;
+    // The grains blow away; with reduced motion (or no WebGL) the name fades.
+    const k = leaving ? clamp((now - leaving) / SCATTER) : 0;
+    const still = reduceMotion.matches;
+    const t = still ? began : now;
     if (scene) {
       scene.draw({
-        uTime: 40 + ((now - began) / 1000) * DRIFT,
-        uR: radius,
-        uSweep: v,
-        uLines: easeOut((now - began) / 900),
-        uHole: iris ? easeInOut(k) * (Math.hypot(innerWidth, innerHeight) / 2 + 12) : 0,
-        uCover: iris ? 1 : 1 - easeInOut(k),
+        uTime: 40 * SPEED + ((t - began) / 1000) * SPEED,
+        uSec: (t - began) / 1000,
+        uFill: v,
+        uShow: easeOut((now - shownAt) / 900),
+        uOut: still ? 0 : easeInOut(k) * 0.6 + k * 0.4,
+        uFade: still ? 1 - easeInOut(k) : 1,
       });
-    } else {
-      loader.style.opacity = 1 - easeInOut(k);
     }
+    if (!scene || !loader.classList.contains('has-canvas')) loader.style.opacity = 1 - easeInOut(k);
     if (k >= 1) finish();
     else requestAnimationFrame(frame);
   }
