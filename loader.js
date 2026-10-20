@@ -1,17 +1,24 @@
 /* Loader — the name in the middle of the plain black, made of dust like the
    backdrop's. Its letters start as faint dust inside a dotted outline and
    fill from the left with bright grains as the page loads, a brighter front
-   running ahead of the fill. At 100 the grains blow away on the drift, the
-   black lifts and the page comes in from under it. Without WebGL the name
-   fills as plain type and fades out. */
+   running ahead of the fill. At 100 the loader runs up off the screen and
+   the page follows it up, the way a projector moves on to the next frame,
+   its parts coming up into place as it arrives. Without WebGL the name fills
+   as plain type. */
 
 (() => {
-  const MIN_TIME = 3200;    // ms the fill takes at least, so it is seen
-  const MAX_WAIT = 6000;    // ms it waits for any one thing at most
-  const HOLD = 500;         // ms the name stays full before it goes
-  const SCATTER = 1300;     // ms for its grains to blow away
-  const PAGE = 450;         // ms into that when the black lifts off the page
-  const LIFT = 800;         // ms the black takes to lift
+  // Once the loader has run, it runs quicker for the rest of the visit.
+  const SEEN = 'jeffq-loaded';
+  let seen = false;
+  try {
+    seen = sessionStorage.getItem(SEEN) === '1';
+  } catch {}
+
+  const MIN_TIME = seen ? 700 : 1600;  // ms the fill takes at least, so it is seen
+  const MAX_WAIT = 4000;    // ms it waits for any one thing at most
+  const HOLD = 200;         // ms the name stays full before it goes
+  const ADVANCE = 900;      // ms for the loader to run up and the page to follow
+  const FADE = 900;         // ms it fades instead, with reduced motion
   const SPEED = 0.018;      // the backdrop's drift and warp (backdrop.js), so
   const SCALE = 0.7;        // the letters' grains move as its dust does
 
@@ -118,7 +125,6 @@
     uniform vec4 uBox;        // the letters' ink, device px, y up: left, bottom, right, top
     uniform float uFill;      // 0…1
     uniform float uShow;      // the empty letters coming in, 0…1
-    uniform float uOut;       // the grains blowing away, 0…1
     uniform float uFade;      // 1, or less as it fades out instead
 
     // 3D simplex noise — Ian McEwan, Stefan Gustavson (Ashima Arts), MIT.
@@ -186,9 +192,7 @@
       vec2 q = vec2(snoise(vec3(p * 0.8, uTime)), snoise(vec3(p * 0.8 + 7.3, uTime + 3.1)));
       vec2 grain = floor(f + q * 90.0 * uDpr);
 
-      // As it goes, the name blows off up and along the warp.
-      vec2 from = f - (q * 160.0 + vec2(40.0, 110.0)) * uOut * uOut * uDpr;
-      vec3 m = texture2D(uMask, vec2(from.x / uRes.x, 1.0 - from.y / uRes.y)).rgb;
+      vec3 m = texture2D(uMask, vec2(f.x / uRes.x, 1.0 - f.y / uRes.y)).rgb;
       if (m.r + m.g + m.b < 0.004) {
         gl_FragColor = vec4(0.0);
         return;
@@ -212,10 +216,8 @@
                     + m.g * (1.0 - fill) * 0.5 * uShow
                     + m.b * 0.03 * fill;
       float lit = step(hash(grain), density);
-      // Each grain goes at its own moment as the name blows away.
-      lit *= step(uOut * 1.2, hash(grain + 51.0));
       float bright = (0.45 + 0.55 * hash(grain + 17.0)) * mix(0.45, 1.0, max(fill, front));
-      float a = clamp(lit * bright * uFade * (1.0 - 0.5 * uOut), 0.0, 1.0);
+      float a = clamp(lit * bright * uFade, 0.0, 1.0);
       gl_FragColor = vec4(INK * a, a);
     }
   `;
@@ -370,9 +372,10 @@
 
   /* ---------- Page entrance ---------- */
 
-  /* The page comes in from under the loader: the reel rises into place, the
-     title and the meta values slide up through their boxes (as when the reel
-     turns), the top bar and the timeline fade in. */
+  /* The page comes up behind the loader as the next frame, and as it
+     arrives its parts come up into place one after another: the top bar, the
+     cards (the front one first, then outwards), the title and the meta
+     through their boxes, then the timeline, its numbers and the needle. */
   function showPage() {
     root.classList.remove('is-loading');
     const quiet = reduceMotion.matches;
@@ -382,20 +385,41 @@
       if (quiet) frames = [{ opacity: 0 }, { opacity: 1 }];
       el.animate(frames, { duration: quiet ? 400 : duration, delay: quiet ? 0 : delay, easing: EASE, fill: 'backwards' });
     };
+    const rise = (by) => [{ opacity: 0, translate: `0 ${by}px` }, { opacity: 1, translate: '0 0' }];
     const up = [{ transform: 'translateY(100%)' }, { transform: 'none' }];
     const fade = [{ opacity: 0 }, { opacity: 1 }];
-    play(document.querySelector('.reel__stage'), [{ opacity: 0, transform: 'translateY(32px) scale(0.96)' }, { opacity: 1, transform: 'none' }], 1600, 0);
-    play(document.querySelector('.title__text:last-child'), up, 1100, 140);
+
+    document.querySelectorAll('.hero__bar .brand, .hero__menu > *').forEach((el, i) => play(el, rise(14), 1000, 450 + i * 70));
+
+    const front = document.querySelector('.reel__card.is-front');
+    const box = front && front.getBoundingClientRect();
+    const middle = box ? box.left + box.width / 2 : innerWidth / 2;
+    const away = (card) => {
+      const r = card.getBoundingClientRect();
+      return Math.abs(r.left + r.width / 2 - middle);
+    };
+    [...document.querySelectorAll('.reel__card:not([hidden])')]
+      .sort((a, b) => away(a) - away(b))
+      .forEach((card, i) => play(card, [
+        { opacity: 0, translate: '0 64px', scale: '0.94' },
+        { opacity: 1, translate: '0 0', scale: '1' },
+      ], 1300, 500 + i * 70));
+
+    play(document.querySelector('.title__text:last-child'), up, 1200, 700);
     document.querySelectorAll('.meta__row').forEach((row, i) => {
-      play(row.querySelector('dt'), fade, 800, 300 + i * 50);
-      play(row.querySelector('.meta__value:last-child'), up, 900, 300 + i * 50);
+      play(row.querySelector('dt'), fade, 800, 800 + i * 60);
+      play(row.querySelector('.meta__value:last-child'), up, 900, 800 + i * 60);
     });
-    play(document.querySelector('.hero__bar'), fade, 1000, 200);
-    play(document.querySelector('.timeline'), fade, 1000, 420);
+
+    play(document.querySelector('.timeline__ticks'), rise(10), 1000, 900);
+    document.querySelectorAll('.timeline__labels li').forEach((li, i) => play(li, rise(10), 900, 950 + i * 60));
+    play(document.querySelector('.timeline__needles'), rise(-10), 800, 1250);
   }
 
   /* ---------- Run ---------- */
 
+  const hero = document.querySelector('.hero');
+  const easeInOut3 = (t) => (t = clamp(t), t < 0.5 ? 4 * t ** 3 : 1 - Math.pow(-2 * t + 2, 3) / 2);
   let doneAt = 0;
   let leaving = 0;
   let shown = -1;
@@ -403,9 +427,14 @@
   function finish() {
     removeEventListener('resize', repaint);
     if (scene) scene.release();
+    hero.style.transform = '';
     loader.classList.remove('is-open');
     loader.hidden = true;
     loader.replaceChildren();
+    loader.removeAttribute('style');
+    try {
+      sessionStorage.setItem(SEEN, '1');
+    } catch {}
   }
 
   function frame(now) {
@@ -421,22 +450,23 @@
       doneAt = now;
       label.textContent = 'Picture start';
     }
+    const still = reduceMotion.matches;
     if (doneAt && !leaving && now - doneAt >= HOLD) {
       leaving = now;
       row.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: 'forwards' });
-      loader.animate([{ backgroundColor: 'rgb(23 23 23 / 0)' }], {
-        duration: reduceMotion.matches ? SCATTER : LIFT,
-        delay: reduceMotion.matches ? 0 : PAGE,
-        easing: 'ease-in-out',
-        fill: 'forwards',
-      });
       loader.style.pointerEvents = 'none';
+      if (still) loader.animate([{ backgroundColor: 'rgb(23 23 23 / 0)' }], { duration: FADE, easing: 'ease-in-out', fill: 'forwards' });
+      showPage();
     }
-    if (leaving && root.classList.contains('is-loading') && now - leaving >= (reduceMotion.matches ? 0 : PAGE)) showPage();
 
-    // The grains blow away; with reduced motion (or no WebGL) the name fades.
-    const k = leaving ? clamp((now - leaving) / SCATTER) : 0;
-    const still = reduceMotion.matches;
+    // The loader runs up and the page follows it; with reduced motion the
+    // loader fades.
+    const k = leaving ? clamp((now - leaving) / (still ? FADE : ADVANCE)) : 0;
+    if (leaving && !still) {
+      const e = easeInOut3(k);
+      loader.style.transform = `translateY(${-e * 100}%)`;
+      hero.style.transform = `translateY(${(1 - e) * 100}%)`;
+    }
     const t = still ? began : now;
     if (scene) {
       scene.draw({
@@ -444,11 +474,10 @@
         uSec: (t - began) / 1000,
         uFill: v,
         uShow: easeOut((now - shownAt) / 900),
-        uOut: still ? 0 : easeInOut(k) * 0.6 + k * 0.4,
         uFade: still ? 1 - easeInOut(k) : 1,
       });
     }
-    if (!scene || !loader.classList.contains('has-canvas')) loader.style.opacity = 1 - easeInOut(k);
+    if (still && (!scene || !loader.classList.contains('has-canvas'))) loader.style.opacity = 1 - easeInOut(k);
     if (k >= 1) finish();
     else requestAnimationFrame(frame);
   }
