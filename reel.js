@@ -116,6 +116,10 @@
   ];
 
   const N = PROJECTS.length;
+  // Each project's page has its own address, #its-title (#krakatoa-1883).
+  PROJECTS.forEach((project) => (project.slug = project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')));
+  const projectAt = (hash) => PROJECTS.findIndex((project) => `#${project.slug}` === hash);
+  const SITE = document.title;
   const META = ['type', 'year', 'runtime', 'watch'];
   // Where a film can be watched, in the order looked for; the last meta row
   // is named after it (YouTube when there is nowhere yet).
@@ -149,6 +153,8 @@
   const ROW_STAGGER = 45;       // ms from one row of Info or a page to the next
   const ROWS_AFTER = 350;       // ms into Info's or a page's slide before its
                                 // rows turn in
+  const LINKED_AFTER = 900;     // ms after the site comes in that a linked
+                                // project's page rises
   const PEN_SPEED = 0.5;        // signature units a ms its pen draws at
   const PEN_FRAMES = 90;        // steps its one take is laid out in
   const EMAIL_MIN = 14;         // px Info's email shrinks to before it wraps
@@ -930,7 +936,9 @@
      turning in as Info's do (Figma "project-page"). On the left, staying put:
      the number and title, the meta and credits side by side, the synopsis;
      on the right, scrolling by: the stills. Where to watch the film closes
-     the credits. Close or Esc closes it. The films wait while it is open. */
+     the credits. Close or Esc closes it. The films wait while it is open.
+     Open, the page has the project's address and the project's name in the
+     tab, so it can be sent; Back closes it and Forward opens it again. */
   const SYNOPSIS = [
     'Lorem ipsum dolor sit amet consectetur. Feugiat egestas tristique ac tellus tempus est metus natoque. Elit vitae dignissim at eget egestas interdum aliquet arcu. Sit justo bibendum est mauris pretium. Et a aliquam mattis leo lacus enim.',
     'A ullamcorper nulla lacus nulla eget ut justo velit. Tincidunt venenatis arcu orci placerat adipiscing rhoncus donec non malesuada. Lorem quis elit at turpis. Nulla egestas tellus vel aliquet fames enim iaculis a. Elementum vitae aliquam velit porttitor faucibus sapien. Lobortis ante nunc lectus at molestie lobortis. Eget facilisi quam nunc nulla.',
@@ -1080,9 +1088,12 @@
     turnRowsIn(projectPage, rows, delay);
   }
 
-  function openProject(i) {
+  function openProject(i, { push = true } = {}) {
     if (projectOpen) return;
     projectOpen = true;
+    const address = `#${PROJECTS[i].slug}`;
+    if (push && location.hash !== address) history.pushState({ project: i }, '', address);
+    document.title = `${PROJECTS[i].title} — ${SITE}`;
     stopFilm();
     hero.inert = true;
     fillProject(i);
@@ -1094,9 +1105,14 @@
     aimCursor();
   }
 
-  function closeProject() {
+  // Back to the address it was opened from (or, when the visitor came
+  // straight to the page, to the site's own).
+  function closeProject({ pop = false } = {}) {
     if (!projectOpen) return;
     projectOpen = false;
+    document.title = SITE;
+    if (!pop && history.state && history.state.project !== undefined) history.back();
+    else if (!pop) history.replaceState(null, '', location.pathname + location.search);
     const focused = projectPage.contains(document.activeElement);
     hero.inert = false;
     scrolling = false;
@@ -1108,7 +1124,23 @@
 
   // A project's page opens only with the reel at rest.
   const projectReady = () => !['is-moving', 'is-loading', 'is-info'].some((name) => root.classList.contains(name));
-  projectCloser.addEventListener('click', closeProject);
+  projectCloser.addEventListener('click', () => closeProject());
+
+  // Straight to a project, without turning the reel.
+  function jump(i) {
+    target = pos = Math.round(pos) + wrap(i - mod(Math.round(pos), N));
+    velocity = 0;
+    render();
+  }
+
+  addEventListener('popstate', () => {
+    const i = projectAt(location.hash);
+    if (i === -1) closeProject({ pop: true });
+    else if (!projectOpen) {
+      jump(i);
+      openProject(i, { push: false });
+    }
+  });
 
   /* The wheel scrolls the page smoothly: it moves where the page is headed
      and the page eases there. Touch, keys and pinch scroll as they always
@@ -1280,6 +1312,22 @@
 
   measure();
   if (location.hash === '#info') openInfo();
+  // A link to a project's page: the reel starts on the project, and its page
+  // rises once the site has come in.
+  const linked = projectAt(location.hash);
+  if (linked !== -1) {
+    jump(linked);
+    const rise = () => setTimeout(() => openProject(linked, { push: false }), LINKED_AFTER);
+    if (!root.classList.contains('is-loading')) rise();
+    else {
+      const watch = new MutationObserver(() => {
+        if (root.classList.contains('is-loading')) return;
+        watch.disconnect();
+        rise();
+      });
+      watch.observe(root, { attributes: true, attributeFilter: ['class'] });
+    }
+  }
   restFilms();
   addEventListener('resize', measure);
   // Titles are measured in Syne: measure again once it has loaded.
