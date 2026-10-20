@@ -42,6 +42,19 @@
       // From 0:43 of the first cut, where the music is fullest: the red rock
       // spire, the eagle, horses, wrestling and the bow, to the yurt at dusk.
       media: { src: 'assets/films/mongolia.mp4', poster: 'assets/films/mongolia.jpg', volume: 0.45, fps: 24 },
+      synopsis: [
+        'A destination advertising concept capturing Mongolia as a place of vast landscapes, natural beauty, and discovery. Through cinematic visual storytelling, the project explores how a destination can be presented not just as somewhere to visit, but as an experience to feel.',
+        'The concept aims to evoke a sense of wonder and adventure, translating the spirit of travel into a compelling visual narrative that invites audiences to see Mongolia from a fresh perspective.',
+      ],
+      credits: [['Role', 'Director'], ['Music', 'Wonder - Henry Miles']],
+      // Her photos: the eagle hunter, the rider by the river, the yurt at
+      // dusk, the archer.
+      stills: [
+        'assets/stills/mongolia-1.webp',
+        'assets/stills/mongolia-2.webp',
+        'assets/stills/mongolia-3.webp',
+        'assets/stills/mongolia-4.webp',
+      ],
     },
     {
       title: 'Ocean Wonders', type: 'AI film', year: '2025', runtime: '01:49',
