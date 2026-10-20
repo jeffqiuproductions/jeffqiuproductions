@@ -99,6 +99,11 @@
       youtube: 'https://youtu.be/s6cfM57IhPw',
       // From 0:56: the eruption to "Heard in Perth".
       media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5, fps: 30 },
+      synopsis: [
+        'Krakatoa 1883 is a cinematic interpretation of the Krakatoa eruption, exploring the immense force of a volcanic event. Rather than presenting a historical account, the film uses the eruption as a lens to study scale, destruction, and deep awe. Imagery evokes a world shaped by forces beyond human control.',
+        'Through dramatic visual storytelling, the project explores the tension between nature’s beauty and its capacity for devastation. Contrasts between stillness and eruption, distance and impact, fragility and immense power build up intensity, inviting viewers to consider humanity’s place in a world that can transform in an instant.',
+      ],
+      credits: [['Role', 'Creative Director'], ['Music', 'Final Frontier']],
       // Her photos: the eruption, the carriage in Batavia, the wave, the man
       // on the beach.
       stills: [
