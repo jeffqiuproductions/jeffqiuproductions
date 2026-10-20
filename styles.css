@@ -798,6 +798,15 @@ a {
   margin-top: calc(21em / 16);
 }
 
+/* Jeff's signature under the text, 48 below it as in the mockup. */
+.signature {
+  display: block;
+  width: 129.287px;
+  height: auto;
+  margin-top: 48px;
+  color: var(--color-ink);
+}
+
 /* The stills over seven columns: one across, then two (four columns and
    three), and again. */
 .project__media {
@@ -1292,6 +1301,10 @@ a {
   }
 
   .project__synopsis {
+    margin-top: 32px;
+  }
+
+  .signature {
     margin-top: 32px;
   }
 

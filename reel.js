@@ -149,6 +149,8 @@
   const ROW_STAGGER = 45;       // ms from one row of Info or a page to the next
   const ROWS_AFTER = 350;       // ms into Info's or a page's slide before its
                                 // rows turn in
+  const PEN_SPEED = 0.5;        // signature units a ms its pen draws at
+  const PEN_FRAMES = 90;        // steps its one take is laid out in
   const EMAIL_MIN = 14;         // px Info's email shrinks to before it wraps
   const CURSOR_FOLLOW = 20;     // spring rate the cursor eases after the mouse
   const CURSOR_STRETCH = 0.08;  // how far it stretches for each card a second
@@ -1007,7 +1009,7 @@
       return p;
     }));
     const side = make('div', 'project__side');
-    side.append(make('span', 'label project__number project__turn', `${pad(i + 1)} / ${pad(N)}`), heading, facts, synopsis);
+    side.append(make('span', 'label project__number project__turn', `${pad(i + 1)} / ${pad(N)}`), heading, facts, synopsis, signature());
     const media = make('div', 'project__media');
     media.append(...stillsOf(project));
     const grid = make('div', 'project__grid');
@@ -1018,6 +1020,41 @@
     sideWatch.disconnect();
     sideWatch.observe(projectScroll);
     sideWatch.observe(side);
+  }
+
+  // Jeff's signature at the foot of the text. The pen draws it again in
+  // one take as the page opens and whenever it is pointed at.
+  const signatureTemplate = document.getElementById('signature');
+
+  function signature() {
+    const mark = signatureTemplate.content.firstElementChild.cloneNode(true);
+    mark.addEventListener('pointerenter', () => drawSignature(mark));
+    return mark;
+  }
+
+  // The pen eases in at the start and out at the end of the whole
+  // signature, not of each stroke, and goes straight on from one stroke to
+  // the next.
+  const penEase = (t) => (1 - Math.cos(Math.PI * t)) / 2;
+
+  function drawSignature(mark, delay = 0) {
+    if (reduceMotion.matches || mark.getAnimations({ subtree: true }).length) return;
+    const strokes = [...mark.querySelectorAll('mask path')];
+    const lengths = strokes.map((stroke) => stroke.getTotalLength());
+    const total = lengths.reduce((sum, length) => sum + length, 0);
+    let before = 0;
+    strokes.forEach((stroke, k) => {
+      const length = lengths[k];
+      const frames = [];
+      for (let f = 0; f <= PEN_FRAMES; f++) {
+        const drawn = penEase(f / PEN_FRAMES) * total - before;
+        frames.push({ strokeDashoffset: drawn > 0 ? Math.max(0, length - drawn) : length + 2 });
+      }
+      // A gap longer than the stroke, so only the one dash ever shows.
+      stroke.style.strokeDasharray = `${length} ${length + 8}`;
+      stroke.animate(frames, { duration: total / PEN_SPEED, delay, fill: 'backwards' });
+      before += length;
+    });
   }
 
   // The side stays put while the stills scroll by; one taller than the
@@ -1055,6 +1092,8 @@
     fillProject(i);
     root.classList.add('is-project');
     turnProjectIn(ROWS_AFTER);
+    const mark = projectScroll.querySelector('.signature');
+    if (mark.getBoundingClientRect().top - projectPage.getBoundingClientRect().top < projectPage.clientHeight) drawSignature(mark, ROWS_AFTER + 600);
     projectCloser.focus({ preventScroll: true });
     aimCursor();
   }
