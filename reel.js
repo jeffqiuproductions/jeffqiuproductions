@@ -65,7 +65,7 @@
         'Ocean Wonders is a mood-driven short film exploring the beauty and mystery of marine life. Moving through vivid forms, subtle movements, and unfamiliar underwater environments, it invites viewers into a world that feels both intimate and immense. Rather than building a linear story, the film lets the imagery convey the wonder of life beneath the water.',
         'Through visual storytelling and atmospheric pacing, the project presents the ocean as a vast world beyond perception. Shifts in scale, light, color, and movement create a sense of quiet discovery, encouraging viewers to slow down and notice more details of an environment that remains largely unseen.',
       ],
-      credits: [['Role', 'Director'], ['Music', 'An Orca’s Travel']],
+      credits: [['Role', 'Creative Director'], ['Music', 'An Orca’s Travel']],
       // Her photos: the turtle, the jellyfish, the whale breaching, the
       // narwhal.
       stills: [
@@ -80,12 +80,33 @@
       youtube: 'https://youtu.be/MEgY6crlBdY',
       // From 0:32: the animals flee, the ships arrive, the attack.
       media: { src: 'assets/films/aliens.mp4', poster: 'assets/films/aliens.jpg', volume: 0.8, fps: 24 },
+      synopsis: [
+        'The Invasion is a mood-driven short film about the tension between familiarity and the unknown. Imagining an extraterrestrial arrival, it builds anticipation, unease, and deep awe. Instead of following a conventional invasion narrative, the film explores the encounter through cinematic imagery and shifts in scale, making the extraordinary feel immediate and unsettling.',
+        'Through visual direction, the project explores humanity’s fragile relationship with the unknown. Contrasts between silence and disruption, isolation and vastness, curiosity and fear shape an immersive experience where atmosphere takes precedence over a defined narrative in each scene.',
+      ],
+      credits: [['Role', 'Creative Director'], ['Music', 'Majestica - Edgar Hopp']],
+      // Her photos: the ship over the Eiffel Tower, the kid with the ice
+      // cream, the kid flying a kite, the ship over the pyramid.
+      stills: [
+        'assets/stills/aliens-1.jpg',
+        ['assets/stills/aliens-2.jpg', '26% 50%'],
+        ['assets/stills/aliens-3.jpg', '68% 50%'],
+        'assets/stills/aliens-4.jpg',
+      ],
     },
     {
       title: 'Krakatoa 1883', type: 'AI film', year: '2025', runtime: '04:22',
       youtube: 'https://youtu.be/s6cfM57IhPw',
       // From 0:56: the eruption to "Heard in Perth".
       media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5, fps: 30 },
+      // Her photos: the eruption, the carriage in Batavia, the wave, the man
+      // on the beach.
+      stills: [
+        'assets/stills/krakatoa-1.webp',
+        ['assets/stills/krakatoa-2.webp', '42% 50%'],
+        'assets/stills/krakatoa-3.webp',
+        'assets/stills/krakatoa-4.webp',
+      ],
     },
   ];
 
@@ -912,7 +933,7 @@
     'A ullamcorper nulla lacus nulla eget ut justo velit. Tincidunt venenatis arcu orci placerat adipiscing rhoncus donec non malesuada. Lorem quis elit at turpis. Nulla egestas tellus vel aliquet fames enim iaculis a. Elementum vitae aliquam velit porttitor faucibus sapien. Lobortis ante nunc lectus at molestie lobortis. Eget facilisi quam nunc nulla.',
     'Volutpat quam tincidunt ac libero urna rhoncus ante quis nulla. Eget enim sed sagittis nisi tristique vivamus enim risus enim. Molestie id gravida varius tempus. In ipsum sodales bibendum tempor vitae lobortis. Massa in semper nunc nibh quam ac. Pellentesque fames enim massa scelerisque viverra ullamcorper nisl euismod amet. Viverra ornare vulputate lacus vestibulum ac enim eget pellentesque. Est justo aliquam phasellus quis amet.',
   ];
-  const CREDITS = [['Role', 'Director'], ['Music', 'Lorem ipsum']];
+  const CREDITS = [['Role', 'Creative Director'], ['Music', 'Lorem ipsum']];
   const CROPS = [[1, '50% 50%'], [2.2, '22% 62%'], [2.6, '80% 45%'], [1.6, '60% 30%']]; // [zoom, at]
 
   const projectPage = document.querySelector('.project');
