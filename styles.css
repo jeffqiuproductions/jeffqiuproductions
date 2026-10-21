@@ -1084,11 +1084,11 @@ a {
   transition: scale 0.45s var(--ease-out), background-color 0.3s;
 }
 
-.cursor:is([data-state="drag"], [data-state="open"], [data-state="close"]) .cursor__orbit {
+.cursor:is([data-state="drag"], [data-state="open"]) .cursor__orbit {
   scale: 1;
 }
 
-.cursor:is([data-state="drag"], [data-state="close"]).is-pressed .cursor__orbit {
+.cursor[data-state="drag"].is-pressed .cursor__orbit {
   scale: 0.9;
 }
 
@@ -1130,8 +1130,7 @@ a {
 }
 
 .cursor[data-state="drag"] .cursor__words--drag,
-.cursor[data-state="open"] .cursor__words--open,
-.cursor[data-state="close"] .cursor__words--close {
+.cursor[data-state="open"] .cursor__words--open {
   opacity: 1;
 }
 
@@ -1172,25 +1171,6 @@ a {
 .cursor[data-state="open"] .cursor__orbit::before {
   opacity: 0;
   translate: 4px 0;
-}
-
-/* Close: Drag's arrows turn to point at each other. */
-.cursor[data-state="close"] .cursor__orbit::before {
-  rotate: 45deg;
-  translate: -2px 0;
-}
-
-.cursor[data-state="close"] .cursor__orbit::after {
-  rotate: -135deg;
-  translate: 2px 0;
-}
-
-.cursor[data-state="close"].is-pressed .cursor__orbit::before {
-  translate: 1px 0;
-}
-
-.cursor[data-state="close"].is-pressed .cursor__orbit::after {
-  translate: -1px 0;
 }
 
 /* The head, its corner on the shaft's tip (5px up and right of the middle). */

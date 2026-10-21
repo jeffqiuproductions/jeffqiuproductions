@@ -1182,9 +1182,7 @@
 
   /* With a mouse, over the reel's zone a disc with Drag running round it;
      over the film at the front, with the reel at rest, Open project (a click
-     there opens the project's page); over the page dimmed behind Info,
-     Close. It eases after
-     the mouse and stretches with the reel as it runs, and its words turn
+     there opens the project's page). It eases after the mouse and stretches with the reel as it runs, and its words turn
      with the reel (--roll, in cards run). */
   const cursor = document.querySelector('.cursor');
   const cursorBody = cursor.querySelector('.cursor__body');
@@ -1236,10 +1234,9 @@
   }
 
   function stateAt(el) {
-    // With Info open, Close over the dimmed page left of it (a click there
-    // closes it).
-    if (infoOpen) return pointer.x < innerWidth - info.offsetWidth ? 'close' : '';
-    if (projectOpen) return '';
+    // With Info or a project's page open, the pointer (a click on the page
+    // dimmed beside Info still closes it).
+    if (infoOpen || projectOpen) return '';
     if (dragging && dragging.moved) return 'drag';
     if (!zoneAt(pointer.y, el)) return '';
     if (!root.classList.contains('is-moving') && el.closest('.reel__card.is-front')) return 'open';
