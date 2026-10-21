@@ -1336,12 +1336,18 @@ a {
   }
 }
 
-/* Phones: tighter grid, the title may take two lines, and a project's page
-   is one column, the text first. */
+/* Phones: tighter grid, the front card eleven columns wide and square, or
+   taller (to 4:5) where the screen has the room, 32 at least above and below
+   it (its films are square cuts; reel.js reads these), the title may take
+   two lines, and a project's page is one column, the text first. */
 @media (max-width: 639px) {
   :root {
     --margin: 20px;
     --gutter: 8px;
+    --front-cols: 11;
+    --card-ratio: 1;
+    --card-ratio-max: 1.25;
+    --card-space: 32px;
     --title-size: 9.4vw;
     --title-lines: 2;
   }

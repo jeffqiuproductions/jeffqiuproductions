@@ -5,10 +5,12 @@
   /* The projects; the ones still called Lorem ipsum are placeholders. A
      project can have `youtube` or `instagram` (where the film is: the meta's
      last row takes its name, with "Watch ↗")
-     and `media: { src, poster, volume, fps, ratio }` for its card: a film
-     (.mp4 / .webm, looping while it is at the front; `poster` is its first
-     frame, shown until it plays; `volume` evens out how loud the films are;
-     `fps` is its frame rate, for the timecode) or a
+     and `media: { src, poster, phone, volume, fps, ratio }` for its card: a
+     film (.mp4 / .webm, looping while it is at the front; `poster` is its
+     first frame, shown until it plays; `phone` is the same film cut square,
+     each shot framed on what matters in it, and lighter, with its own
+     poster, for phones' square cards; `volume` evens out how loud the films
+     are; `fps` is its frame rate, for the timecode) or a
      picture, 16:9 filling the card or 1:1 set in its middle, as in the Figma
      placeholders ("Video 16:9", "Image 1:1"). Each film is 40 seconds of the
      whole one, cut to the card's shape. For its page (a click on its film at the front)
@@ -22,7 +24,7 @@
       youtube: 'https://youtu.be/brSsx2kpb-Q',
       // A fashion ad for a made-up brand. From the start (the whole film is 42
       // seconds): the closed eyes to the dune's crest at sunset.
-      media: { src: 'assets/films/desert.mp4', poster: 'assets/films/desert.jpg', volume: 0.95, fps: 24 },
+      media: { src: 'assets/films/desert.mp4', poster: 'assets/films/desert.jpg', phone: { src: 'assets/films/desert-phone.mp4', poster: 'assets/films/desert-phone.jpg' }, volume: 0.95, fps: 24 },
       synopsis: [
         'Maison Solenne is a self-initiated fashion brand concept exploring the intersection of high-fashion editorial imagery, natural landscapes, and cinematic storytelling. Built around a visual language of fluid silhouettes, rich crimson tones, and sun-drenched desert scenery, the concept creates a world that feels dramatic, refined, and quietly evocative.',
         'Through creative direction and campaign visual development, the project explores how contrasting elements, delicate movement and expansive landscapes, sculptural fabrics and organic forms, intimacy and scale can come together to shape a distinctive brand atmosphere.',
@@ -41,7 +43,7 @@
       title: 'Mongolia', type: 'Spec ad', year: '2026', runtime: '01:30',
       // From 0:43 of the first cut, where the music is fullest: the red rock
       // spire, the eagle, horses, wrestling and the bow, to the yurt at dusk.
-      media: { src: 'assets/films/mongolia.mp4', poster: 'assets/films/mongolia.jpg', volume: 0.45, fps: 24 },
+      media: { src: 'assets/films/mongolia.mp4', poster: 'assets/films/mongolia.jpg', phone: { src: 'assets/films/mongolia-phone.mp4', poster: 'assets/films/mongolia-phone.jpg' }, volume: 0.45, fps: 24 },
       synopsis: [
         'Mongolia is a destination advertising concept exploring the vast landscapes, raw beauty, and sense of discovery associated with travel. Through cinematic imagery and atmospheric pacing, the film presents the destination as more than a place to visit, shaping an experience that feels expansive, remote, and awe-inspiring.',
         'Rather than relying on a conventional travel narrative, the project focuses on the emotional pull of the landscape. Open horizons, natural textures, and the relationship between scale and solitude inform the visual direction, inviting viewers to imagine a journey shaped by wonder, freedom, and connection with the natural world.',
@@ -60,7 +62,7 @@
       title: 'Ocean Wonders', type: 'Short film', year: '2025', runtime: '01:49',
       youtube: 'https://youtu.be/wvu-Rvvs_QU',
       // From 0:26, where the music comes in: the dolphin at sunset to the walruses.
-      media: { src: 'assets/films/ocean.mp4', poster: 'assets/films/ocean.jpg', volume: 1, fps: 24 },
+      media: { src: 'assets/films/ocean.mp4', poster: 'assets/films/ocean.jpg', phone: { src: 'assets/films/ocean-phone.mp4', poster: 'assets/films/ocean-phone.jpg' }, volume: 1, fps: 24 },
       synopsis: [
         'Ocean Wonders is a mood-driven short film exploring the beauty and mystery of marine life. Moving through vivid forms, subtle movements, and unfamiliar underwater environments, it invites viewers into a world that feels both intimate and immense. Rather than building a linear story, the film lets the imagery convey the wonder of life beneath the water.',
         'Through visual storytelling and atmospheric pacing, the project presents the ocean as a vast world beyond perception. Shifts in scale, light, color, and movement create a sense of quiet discovery, encouraging viewers to slow down and notice more details of an environment that remains largely unseen.',
@@ -79,7 +81,7 @@
       title: 'The Invasion', type: 'Short film', year: '2025', runtime: '01:32',
       youtube: 'https://youtu.be/MEgY6crlBdY',
       // From 0:32: the animals flee, the ships arrive, the attack.
-      media: { src: 'assets/films/aliens.mp4', poster: 'assets/films/aliens.jpg', volume: 0.8, fps: 24 },
+      media: { src: 'assets/films/aliens.mp4', poster: 'assets/films/aliens.jpg', phone: { src: 'assets/films/aliens-phone.mp4', poster: 'assets/films/aliens-phone.jpg' }, volume: 0.8, fps: 24 },
       synopsis: [
         'The Invasion is a mood-driven short film about the tension between familiarity and the unknown. Imagining an extraterrestrial arrival, it builds anticipation, unease, and deep awe. Instead of following a conventional invasion narrative, the film explores the encounter through cinematic imagery and shifts in scale, making the extraordinary feel immediate and unsettling.',
         'Through visual direction, the project explores humanity’s fragile relationship with the unknown. Contrasts between silence and disruption, isolation and vastness, curiosity and fear shape an immersive experience where atmosphere takes precedence over a defined narrative in each scene.',
@@ -98,7 +100,7 @@
       title: 'Krakatoa 1883', type: 'Short film', year: '2025', runtime: '04:22',
       youtube: 'https://youtu.be/s6cfM57IhPw',
       // From 0:56: the eruption to "Heard in Perth".
-      media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', volume: 0.5, fps: 30 },
+      media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', phone: { src: 'assets/films/krakatoa-phone.mp4', poster: 'assets/films/krakatoa-phone.jpg' }, volume: 0.5, fps: 30 },
       synopsis: [
         'Krakatoa 1883 is a cinematic interpretation of the Krakatoa eruption, exploring the immense force of a volcanic event. Rather than presenting a historical account, the film uses the eruption as a lens to study scale, destruction, and deep awe. Imagery evokes a world shaped by forces beyond human control.',
         'Through dramatic visual storytelling, the project explores the tension between nature’s beauty and its capacity for devastation. Contrasts between stillness and eruption, distance and impact, fragility and immense power build up intensity, inviting viewers to consider humanity’s place in a world that can transform in an instant.',
@@ -130,6 +132,7 @@
   const FAR_EDGE = 400.63 / 440;
   const CARD_RATIO = 440 / 794;  // the front card's height to its width
   const MIN_ROOM = 48;          // least space above and below the card
+                                // (unless styles.css says --card-space)
   const SIDE_CARDS = 3;         // cards laid out on each side of the front one
   const WHEEL_START = 20;       // wheel / trackpad pixels before the first card
   const WHEEL_STEP = 400;       // …and for each card after it, in one gesture
@@ -187,6 +190,10 @@
 
   /* ---------- Build ---------- */
 
+  // On a phone, a film's square cut, where it has one.
+  const phone = matchMedia('(max-width: 639px)');
+  const filmFor = (media) => (phone.matches && media.phone) || media;
+
   const cards = PROJECTS.map((project, i) => {
     const card = document.createElement('div');
     card.className = 'reel__card';
@@ -195,12 +202,13 @@
       const film = /\.(mp4|webm)$/i.test(project.media.src);
       const media = document.createElement(film ? 'video' : 'img');
       media.className = 'reel__media';
-      media.src = project.media.src;
+      const { src, poster } = filmFor(project.media);
+      media.src = src;
       media.dataset.ratio = project.media.ratio || '16:9';
       if (film) {
         Object.assign(media, { muted: true, loop: true, playsInline: true, preload: 'metadata' });
         media.setAttribute('muted', '');
-        if (project.media.poster) media.poster = project.media.poster;
+        if (poster) media.poster = poster;
         media.dataset.volume = project.media.volume ?? VOLUME;
         media.dataset.fps = project.media.fps || FPS;
         media.addEventListener('timeupdate', () => showTime(media));
@@ -255,15 +263,20 @@
     const margin = parseFloat(style.getPropertyValue('--margin'));
     const gutter = parseFloat(style.getPropertyValue('--gutter'));
     const frontCols = parseFloat(style.getPropertyValue('--front-cols'));
+    // The card's height to its width: CARD_RATIO, or on phones square, and
+    // taller (to --card-ratio-max) where the screen has the room.
+    const ratio = parseFloat(style.getPropertyValue('--card-ratio')) || CARD_RATIO;
+    const tallest = parseFloat(style.getPropertyValue('--card-ratio-max')) || ratio;
+    const space = parseFloat(style.getPropertyValue('--card-space')) || MIN_ROOM;
     const width = reel.clientWidth;
     const room = reel.clientHeight;
 
     const col = (width - 2 * margin - 11 * gutter) / 12;
     let w = frontCols * col + (frontCols - 1) * gutter;
-    let h = w * CARD_RATIO;
-    if (h > room - 2 * MIN_ROOM) {
-      h = Math.max(room - 2 * MIN_ROOM, 120);
-      w = h / CARD_RATIO;
+    let h = Math.min(Math.max(w * ratio, room - 2 * space), w * tallest);
+    if (h > room - 2 * space) {
+      h = Math.max(room - 2 * space, 120);
+      w = h / ratio;
     }
 
     // Fold just past the front card's edge; a side card's far edge lands on
@@ -656,6 +669,23 @@
     showSound();
   }
   soundButton.addEventListener('click', toggleSound);
+
+  // Into or out of a phone's layout, each card takes the film for its shape
+  // (square or wide), keeping its place; the one playing plays on.
+  phone.addEventListener('change', () => {
+    films.forEach((video, i) => {
+      if (!video) return;
+      const { src, poster } = filmFor(PROJECTS[i].media);
+      if (video.getAttribute('src') === src) return;
+      const at = video.currentTime;
+      const wasPlaying = video === playing;
+      if (wasPlaying) playing = null;
+      video.poster = poster || '';
+      video.src = src;
+      if (at) video.addEventListener('loadedmetadata', () => (video.currentTime = at), { once: true });
+      if (wasPlaying) startFilm(video);
+    });
+  });
 
   // Not while the page is out of sight, nor under the loader.
   document.addEventListener('visibilitychange', () => (document.hidden ? stopFilm() : restFilms()));
