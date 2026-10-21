@@ -1232,10 +1232,9 @@ a {
 
 /* ---------- Pointer ---------- */
 
-/* The mouse's own mark everywhere the disc isn't: a viewfinder's four
-   corners round a point. On a link they close round its words, as a camera
-   does when it focuses, and blink twice, and the words go pink (cursor.js
-   moves it and sizes it). */
+/* The mouse's own mark everywhere the disc isn't: an empty ring, round like
+   the disc it grows into over the reel. On a link it opens into a wider
+   pink ring and the words go pink (cursor.js moves it and sizes it). */
 .has-pointer:not(.is-loading),
 .has-pointer:not(.is-loading) * {
   cursor: none !important;
@@ -1254,61 +1253,34 @@ a {
   display: block;
 }
 
-/* 16 square, corners 5 long. */
-.pointer__frame {
+/* 16 across, a 1px ring. */
+.pointer__ring {
   position: absolute;
   width: 16px;
   height: 16px;
   translate: -50% -50%;
-  color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: 50%;
   mix-blend-mode: difference;
-  transition: opacity 0.25s, scale 0.35s var(--ease-out);
+  transition: opacity 0.25s, scale 0.35s var(--ease-out), border-color 0.25s;
 }
 
-.pointer.is-away .pointer__frame {
+.pointer.is-away .pointer__ring {
   opacity: 0;
   scale: 0;
 }
 
-.pointer.is-pressed .pointer__frame {
+.pointer.is-pressed .pointer__ring {
   scale: 0.75;
 }
 
-.pointer.is-aimed .pointer__frame {
-  color: var(--color-needle);
+.pointer.is-aimed .pointer__ring {
+  border-color: var(--color-needle);
   mix-blend-mode: normal;
 }
 
-.pointer__frame i {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border: 0 solid currentColor;
-}
-
-.pointer__frame i:nth-child(1) { left: 0; top: 0; border-width: 1px 0 0 1px; }
-.pointer__frame i:nth-child(2) { right: 0; top: 0; border-width: 1px 1px 0 0; }
-.pointer__frame i:nth-child(3) { right: 0; bottom: 0; border-width: 0 1px 1px 0; }
-.pointer__frame i:nth-child(4) { left: 0; bottom: 0; border-width: 0 0 1px 1px; }
-
-/* The point in the middle. */
-.pointer__frame::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 2px;
-  height: 2px;
-  margin: -1px 0 0 -1px;
-  background: currentColor;
-  transition: opacity 0.2s;
-}
-
-.pointer.is-aimed .pointer__frame::after {
-  opacity: 0;
-}
-
-.is-aimed:is(a, button) {
+/* Every link alike, the timeline's numbers too. */
+.has-pointer .is-aimed:is(a, button) {
   color: var(--color-needle);
 }
 

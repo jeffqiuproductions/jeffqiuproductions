@@ -1,8 +1,7 @@
-/* The pointer — the mouse's own mark wherever the reel's disc isn't: a
-   viewfinder's corners round a point (styles.css draws it). On a link the
-   corners close round its words, as a camera's do when it focuses, blink
-   twice and lean a little after the mouse. GSAP moves and sizes it. Off on
-   touch screens, and while the page loads. */
+/* The pointer — the mouse's own mark wherever the reel's disc isn't: an
+   empty ring, round like the disc it grows into over the reel (styles.css
+   draws it). On a link it opens into a wider pink ring round the pointer.
+   GSAP moves and sizes it. Off on touch screens, and while the page loads. */
 
 (() => {
   const gsap = window.gsap;
@@ -13,18 +12,17 @@
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const disc = document.querySelector('.cursor');
 
-  const FOLLOW = 0.16;          // s the frame takes to catch the mouse
-  const MAGNET = 0.12;          // how far, on a link, it leans after the mouse
-  const FRAME = 16;             // px square round the point
-  const FRAME_PAD = [14, 10];   // px it adds round a link's words
+  const FOLLOW = 0.16;    // s the ring takes to catch the mouse
+  const RING = 16;        // px across
+  const RING_ON = 40;     // px across on a link
   const LINKS = 'a[href], button';
 
   const pointer = document.createElement('div');
   pointer.className = 'pointer is-away';
   pointer.setAttribute('aria-hidden', 'true');
-  pointer.innerHTML = '<span class="pointer__frame"><i></i><i></i><i></i><i></i></span>';
+  pointer.innerHTML = '<span class="pointer__ring"></span>';
   document.body.append(pointer);
-  const frame = pointer.firstElementChild;
+  const ring = pointer.firstElementChild;
 
   const toX = gsap.quickTo(pointer, 'x', { duration: FOLLOW, ease: 'power3' });
   const toY = gsap.quickTo(pointer, 'y', { duration: FOLLOW, ease: 'power3' });
@@ -32,34 +30,18 @@
   let at = null;      // where the mouse is, while it is on the page
   let aimed = null;   // the link it is on
 
-  // Where a link's words are (with Sound, its bars too).
-  function boxOf(el) {
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    const box = range.getBoundingClientRect();
-    return box.width ? box : el.getBoundingClientRect();
-  }
-
   function show() {
     const away = !at || Boolean(disc.dataset.state) || root.classList.contains('is-loading');
     pointer.classList.toggle('is-away', away);
   }
 
-  // After the mouse; on a link, round its words.
   function place(jump) {
-    let { x, y } = at;
-    if (aimed) {
-      const box = boxOf(aimed);
-      const cx = box.left + box.width / 2;
-      const cy = box.top + box.height / 2;
-      [x, y] = [cx + (x - cx) * MAGNET, cy + (y - cy) * MAGNET];
-    }
     if (jump || reduceMotion.matches) {
-      toX(x, x);
-      toY(y, y);
+      toX(at.x, at.x);
+      toY(at.y, at.y);
     } else {
-      toX(x);
-      toY(y);
+      toX(at.x);
+      toY(at.y);
     }
   }
 
@@ -68,25 +50,9 @@
     if (aimed) aimed.classList.remove('is-aimed');
     aimed = el;
     pointer.classList.toggle('is-aimed', Boolean(el));
-    const still = reduceMotion.matches;
-    if (!el) {
-      gsap.to(frame, { width: FRAME, height: FRAME, duration: still ? 0 : 0.4, ease: 'expo.out', overwrite: 'auto' });
-      gsap.set(frame.children, { opacity: 1, overwrite: 'auto' });
-      return;
-    }
-    el.classList.add('is-aimed');
-    const box = boxOf(el);
-    gsap.to(frame, {
-      width: box.width + FRAME_PAD[0],
-      height: box.height + FRAME_PAD[1],
-      duration: still ? 0 : 0.45,
-      ease: 'expo.out',
-      overwrite: 'auto',
-    });
-    if (still) return;
-    gsap.fromTo(frame.children, { opacity: 1 }, {
-      opacity: 0.2, duration: 0.07, repeat: 3, yoyo: true, delay: 0.3, ease: 'none', overwrite: 'auto',
-    });
+    if (el) el.classList.add('is-aimed');
+    const size = el ? RING_ON : RING;
+    gsap.to(ring, { width: size, height: size, duration: reduceMotion.matches ? 0 : el ? 0.45 : 0.4, ease: 'expo.out', overwrite: 'auto' });
   }
 
   addEventListener('pointermove', (e) => {
@@ -106,11 +72,6 @@
     aim(null);
     show();
   });
-
-  // A page that scrolls under a link the mouse is on takes the frame with it.
-  addEventListener('scroll', () => {
-    if (aimed && at) place(true);
-  }, { capture: true, passive: true });
 
   addEventListener('pointerdown', (e) => {
     if (e.pointerType === 'mouse') pointer.classList.add('is-pressed');
