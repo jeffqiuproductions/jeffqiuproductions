@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Syne:wght@800&display=swap">
   <!-- Geist's ↗ (for "Watch ↗") isn't in its latin subset; this brings just that. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500&text=%E2%86%97&display=swap">
-  <link rel="stylesheet" href="styles.css?v=reel-23">
+  <link rel="stylesheet" href="styles.css?v=reel-24">
   <script>
     // The loader (loader.js) covers the page while it loads. If it never
     // starts, the page shows anyway.
@@ -46,10 +46,10 @@
     <!-- Backdrop: drifting dust behind everything, drawn by backdrop.js. -->
     <canvas class="backdrop" aria-hidden="true"></canvas>
 
-    <!-- The bar: the name, and on the right Sound (one switch for every
-         film; reel.js keeps it) and Info. -->
+    <!-- The bar: the name (words only, not a link), and on the right Sound
+         (one switch for every film; reel.js keeps it) and Info. -->
     <header class="hero__bar">
-      <a class="brand" href="./">Jeff.q Productions</a>
+      <p class="brand">Jeff.q Productions</p>
       <div class="hero__menu">
         <button class="sound" type="button" aria-label="Sound" aria-pressed="false">
           <span class="sound__word label" aria-hidden="true">Sound</span>
@@ -89,8 +89,8 @@
 
   <!-- Info: who Jeff is, from the right over the page (columns 7 to 12),
        which dims behind it (reel.js opens and closes it). Figma "info-page":
-       the greeting and his words at the top; his services, partners and
-       email at the foot. -->
+       the greeting and his words at the top, his services and partners in
+       the middle, and his email with his socials under it at the foot. -->
   <div class="info-scrim" aria-hidden="true"></div>
   <aside class="info" id="info" role="dialog" aria-modal="true" aria-label="Info">
     <div class="info__bar">
@@ -120,6 +120,11 @@
         <div class="info__contact">
           <span class="label">Email</span>
           <a class="link watch info__email" href="mailto:jeff.ak@outlook.com">jeff.ak@outlook.com</a>
+          <ul class="info__social label" aria-label="Social">
+            <li><a class="link watch" href="https://www.youtube.com/@jqcreations" target="_blank" rel="noopener">YouTube<span aria-hidden="true"> ↗</span></a></li>
+            <li><a class="link watch" href="https://www.instagram.com/jeffqiuproductions/" target="_blank" rel="noopener">Instagram<span aria-hidden="true"> ↗</span></a></li>
+            <li><a class="link watch" href="https://www.linkedin.com/in/jeffreykurniawan1/" target="_blank" rel="noopener">LinkedIn<span aria-hidden="true"> ↗</span></a></li>
+          </ul>
         </div>
       </div>
     </div>
@@ -133,7 +138,7 @@
   <div class="project" role="dialog" aria-modal="true" aria-label="Project">
     <div class="project__scroll"></div>
     <div class="project__bar">
-      <a class="brand" href="./">Jeff.q Productions</a>
+      <p class="brand">Jeff.q Productions</p>
       <button class="label link watch project__close" type="button">Close</button>
     </div>
   </div>
@@ -175,9 +180,9 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="reel.js?v=reel-23"></script>
-  <script src="cursor.js?v=reel-23"></script>
-  <script src="backdrop.js?v=reel-23"></script>
-  <script src="loader.js?v=reel-23"></script>
+  <script src="reel.js?v=reel-24"></script>
+  <script src="cursor.js?v=reel-24"></script>
+  <script src="backdrop.js?v=reel-24"></script>
+  <script src="loader.js?v=reel-24"></script>
 </body>
 </html>

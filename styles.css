@@ -183,7 +183,9 @@ a {
   }
 }
 
+/* The name: words only, not a link. */
 .brand {
+  margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 12px;
@@ -606,21 +608,24 @@ a {
   display: inline-block;
 }
 
-/* At the foot, his services and partners, then the email 64 below. */
+/* Under his words, his services and partners, then the email at the foot,
+   evenly spaced down what is left (48 apart at least). */
 .info__foot {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 64px;
-  margin-top: auto;
+  gap: 48px;
   padding-top: 48px;
 }
 
-/* Services and partners, half the panel each: the name muted, 12 above the
-   rows, which are 20 apart as in the meta. */
+/* Services and partners, half the panel each, midway between his words and
+   the email: the name muted, 12 above the rows, which are 20 apart as in
+   the meta. */
 .info__lists {
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: var(--gutter);
+  margin-block: auto;
 }
 
 .info__list {
@@ -661,6 +666,17 @@ a {
 .info__email.is-wrapped {
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+/* His socials 24 under the email, muted as its name, pink under the
+   pointer. */
+.info__social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 /* ---------- Project page ---------- */
@@ -730,11 +746,8 @@ a {
   pointer-events: none;
 }
 
-.project__bar > * {
-  pointer-events: auto;
-}
-
 .project__close {
+  pointer-events: auto;
   padding: 0;
   border: 0;
   background: none;
@@ -1411,10 +1424,6 @@ a {
   /* "I'm Jeff Qiu" on one line, as wide as the panel lets it. */
   .info__name {
     font-size: min(calc((100vw - 2 * var(--margin)) * 0.096), 48px);
-  }
-
-  .info__foot {
-    gap: 48px;
   }
 
   .project__bar {
