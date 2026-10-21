@@ -41,6 +41,7 @@
     },
     {
       title: 'Mongolia', type: 'Spec ad', year: '2026', runtime: '01:30',
+      youtube: 'https://youtu.be/-wct-PZAX8o',
       // From 0:43 of the first cut, where the music is fullest: the red rock
       // spire, the eagle, horses, wrestling and the bow, to the yurt at dusk.
       media: { src: 'assets/films/mongolia.mp4', poster: 'assets/films/mongolia.jpg', phone: { src: 'assets/films/mongolia-phone.mp4', poster: 'assets/films/mongolia-phone.jpg' }, volume: 0.45, fps: 24 },
