@@ -26,8 +26,8 @@
       // seconds): the closed eyes to the dune's crest at sunset.
       media: { src: 'assets/films/desert.mp4', poster: 'assets/films/desert.jpg', phone: { src: 'assets/films/desert-phone.mp4', poster: 'assets/films/desert-phone.jpg' }, volume: 0.95, fps: 24 },
       synopsis: [
-        'Maison Solenne is a self-initiated fashion brand concept exploring the intersection of high-fashion editorial imagery, natural landscapes, and cinematic storytelling. Built around a visual language of fluid silhouettes, rich crimson tones, and sun-drenched desert scenery, the concept creates a world that feels dramatic, refined, and quietly evocative.',
-        'Through creative direction and campaign visual development, the project explores how contrasting elements, delicate movement and expansive landscapes, sculptural fabrics and organic forms, intimacy and scale can come together to shape a distinctive brand atmosphere.',
+        'Maison Solenne is a spec ad for a concept brand. The idea was to take high-fashion editorial imagery out into the landscape and treat it like cinema. The visual language is simple: fluid silhouettes, deep crimson and a desert lit by a low evening sun. Most shots are backlit, so the figure becomes a shape and the fabric glows at its edges.',
+        'The direction is built on contrasts: delicate movement against huge open space, sculptural fabric against the soft curves of the dunes, close-ups of skin against wide shots where the model is a small red mark. Together they give a brand with no products yet a look and a mood of its own.',
       ],
       credits: [['Role', 'Creative Director'], ['Music', 'Jakob Ahlbom']],
       // Frames of the film: the eyes (0:02), the dune at sunset (0:26), the
@@ -46,8 +46,8 @@
       // spire, the eagle, horses, wrestling and the bow, to the yurt at dusk.
       media: { src: 'assets/films/mongolia.mp4', poster: 'assets/films/mongolia.jpg', phone: { src: 'assets/films/mongolia-phone.mp4', poster: 'assets/films/mongolia-phone.jpg' }, volume: 0.45, fps: 24 },
       synopsis: [
-        'Mongolia is a destination advertising concept exploring the vast landscapes, raw beauty, and sense of discovery associated with travel. Through cinematic imagery and atmospheric pacing, the film presents the destination as more than a place to visit, shaping an experience that feels expansive, remote, and awe-inspiring.',
-        'Rather than relying on a conventional travel narrative, the project focuses on the emotional pull of the landscape. Open horizons, natural textures, and the relationship between scale and solitude inform the visual direction, inviting viewers to imagine a journey shaped by wonder, freedom, and connection with the natural world.',
+        'Mongolia is a concept for a destination ad. Instead of selling a place to visit, it tries to give you the experience of being there: vast, remote and a little overwhelming. The landscapes do most of the talking, from red sandstone cliffs and white badlands to snowy peaks and green valleys, with no voiceover and no list of sights to tick off.',
+        'I skipped the usual travel story and focused on the pull of the land. Open horizons, natural textures and feeling small in a huge space shaped every visual choice. Aerial shots show the scale, and close ones bring you into the dust of running horses or face to face with an archer.',
       ],
       credits: [['Role', 'Creative Director'], ['Music', 'Henry Miles']],
       // Her photos: the eagle hunter, the rider by the river, the yurt at
@@ -65,8 +65,8 @@
       // From 0:26, where the music comes in: the dolphin at sunset to the walruses.
       media: { src: 'assets/films/ocean.mp4', poster: 'assets/films/ocean.jpg', phone: { src: 'assets/films/ocean-phone.mp4', poster: 'assets/films/ocean-phone.jpg' }, volume: 1, fps: 24 },
       synopsis: [
-        'Ocean Wonders is a mood-driven short film exploring the beauty and mystery of marine life. Moving through vivid forms, subtle movements, and unfamiliar underwater environments, it invites viewers into a world that feels both intimate and immense. Rather than building a linear story, the film lets the imagery convey the wonder of life beneath the water.',
-        'Through visual storytelling and atmospheric pacing, the project presents the ocean as a vast world beyond perception. Shifts in scale, light, color, and movement create a sense of quiet discovery, encouraging viewers to slow down and notice more details of an environment that remains largely unseen.',
+        'Ocean Wonders is a mood piece about the beauty and mystery of life in the sea. There is no linear story and no narrator. The images carry the film on their own: vivid shapes, slow movements and underwater places most people will never see. The camera stays at the level of the animals, so the ocean feels close and enormous at once.',
+        'The direction treats the ocean as a world bigger than we can take in. Scale, light and color keep shifting, from a jellyfish filling the frame to a humpback breaching, from a golden sunset to the cold Arctic blue. The slow pacing asks you to notice a place that stays mostly hidden.',
       ],
       credits: [['Role', 'Creative Director'], ['Music', 'Sam Will']],
       // Her photos: the turtle, the jellyfish, the whale breaching, the
@@ -84,8 +84,8 @@
       // From 0:32: the animals flee, the ships arrive, the attack.
       media: { src: 'assets/films/aliens.mp4', poster: 'assets/films/aliens.jpg', phone: { src: 'assets/films/aliens-phone.mp4', poster: 'assets/films/aliens-phone.jpg' }, volume: 0.8, fps: 24 },
       synopsis: [
-        'The Invasion is a mood-driven short film about the tension between familiarity and the unknown. Imagining an extraterrestrial arrival, it builds anticipation, unease, and deep awe. Instead of following a conventional invasion narrative, the film explores the encounter through cinematic imagery and shifts in scale, making the extraordinary feel immediate and unsettling.',
-        'Through visual direction, the project explores humanity’s fragile relationship with the unknown. Contrasts between silence and disruption, isolation and vastness, curiosity and fear shape an immersive experience where atmosphere takes precedence over a defined narrative in each scene.',
+        'The Invasion is a short film about the familiar meeting the unknown. It imagines the day the ships arrive and lets suspense, unease and awe build from shot to shot. Instead of the usual alien plot, it works through images and scale: ships over Rio, the Great Wall, the Kremlin and Giza, places so well known that anything above them feels wrong.',
+        'Visually it is about how fragile we are next to something we can’t explain. The film is built on contrasts: silence and sudden noise, a lone child looking up and a whole fleet filling the sky, curiosity turning into fear. Atmosphere always comes before story, so the extraordinary feels close and unsettling.',
       ],
       credits: [['Role', 'Creative Director'], ['Music', 'Edgar Hopp']],
       // Her photos: the ship over the Eiffel Tower, the kid with the ice
@@ -103,8 +103,8 @@
       // From 0:56: the eruption to "Heard in Perth".
       media: { src: 'assets/films/krakatoa.mp4', poster: 'assets/films/krakatoa.jpg', phone: { src: 'assets/films/krakatoa-phone.mp4', poster: 'assets/films/krakatoa-phone.jpg' }, volume: 0.5, fps: 30 },
       synopsis: [
-        'Krakatoa 1883 is a cinematic interpretation of the Krakatoa eruption, exploring the immense force of a volcanic event. Rather than presenting a historical account, the film uses the eruption as a lens to study scale, destruction, and deep awe. Imagery evokes a world shaped by forces beyond human control.',
-        'Through dramatic visual storytelling, the project explores the tension between nature’s beauty and its capacity for devastation. Contrasts between stillness and eruption, distance and impact, fragility and immense power build up intensity, inviting viewers to consider humanity’s place in a world that can transform in an instant.',
+        'Krakatoa 1883 is a cinematic take on the eruption of Krakatoa. It is not a history lesson. The eruption is a lens on scale, destruction and awe, and on forces no one can control. The volcano appears as fire, ash and lightning, its orange heat set against the cold gray sea, and the people of Batavia look small next to its fury.',
+        'The direction is about the tension between nature’s beauty and its power to destroy. Still, quiet shots of the shore sit against the blast, distant views against faces up close, fragile people against immense power. The film leaves you asking where we stand in a world that can change in an instant.',
       ],
       credits: [['Role', 'Creative Director'], ['Music', 'Hampus Naeselius']],
       // Her photos: the eruption, the carriage in Batavia, the wave, the man

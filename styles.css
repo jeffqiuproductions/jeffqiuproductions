@@ -764,7 +764,7 @@ a {
 }
 
 /* reel.js sets its top so one taller than the screen stays once its foot is
-   in view. */
+   in view. At least a screen tall, so the signature sits at its foot. */
 .project__side {
   grid-column: 1 / span 5;
   position: sticky;
@@ -772,6 +772,7 @@ a {
   align-self: start;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
   padding: 104px 0 40px;
 }
 
@@ -841,7 +842,9 @@ a {
   white-space: normal;
 }
 
+/* The text takes up the room left, which keeps the signature at the foot. */
 .project__synopsis {
+  flex-grow: 1;
   margin-top: 48px;
   font-family: var(--font-text);
   font-weight: 400;
@@ -1324,6 +1327,7 @@ a {
 
   .project__side {
     position: static;
+    min-height: 0;
     padding-bottom: 0;
   }
 
