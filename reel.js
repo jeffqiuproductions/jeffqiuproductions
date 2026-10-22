@@ -1358,6 +1358,10 @@
   }
   restFilms();
   addEventListener('resize', measure);
-  // Titles are measured in Syne: measure again once it has loaded.
-  document.fonts.ready.then(() => fitTitle(title.lastElementChild));
+  // Titles and Info's email are measured in Syne: measure again once it has
+  // loaded (Info can be open from the start, at #info).
+  document.fonts.ready.then(() => {
+    fitTitle(title.lastElementChild);
+    if (infoOpen) fitEmail();
+  });
 })();
