@@ -15,7 +15,8 @@
      placeholders ("Video 16:9", "Image 1:1"). Each film is 40 seconds of the
      whole one, cut to the card's shape. For its page (a click on its film at the front)
      a project can have `synopsis`, `credits` ([name, value] pairs) and
-     `stills` (pictures, or [picture, the part of it its box shows]); until
+     `stills` (pictures, or [picture, the part of it its box shows]) with
+     `alts` (what each one shows, in the same order); until
      it does, the page has Lorem ipsum and the poster, cropped closer, stands
      in for stills. */
   const PROJECTS = [
@@ -30,13 +31,19 @@
         'The direction is built on contrasts: delicate movement against huge open space, sculptural fabric against the soft curves of the dunes, close-ups of skin against wide shots where the model is a small red mark. Together they give a brand with no products yet a look and a mood of its own.',
       ],
       credits: [['Role', 'Creative Director'], ['Music', 'Jakob Ahlbom']],
-      // Frames of the film: the eyes (0:02), the dune at sunset (0:26), the
-      // dress (0:30), the veil (0:33).
+      // Frames of the film: the eyes, the veil, the dress, the dune at sunset.
       stills: [
         'assets/stills/maison-1.jpg',
         ['assets/stills/maison-2.jpg', '55% 50%'],
         'assets/stills/maison-3.jpg',
         'assets/stills/maison-4.jpg',
+      ],
+      // What each still shows, for screen readers and image search.
+      alts: [
+        'Maison Solenne: a close-up of the model’s eyes',
+        'Maison Solenne: the model in crimson on a dune, a long red veil blowing in the wind',
+        'Maison Solenne: the model in a ruffled crimson gown on a dune against the low sun',
+        'Maison Solenne: the sun setting over the dunes, the model a small figure on the ridge',
       ],
     },
     {
@@ -58,6 +65,13 @@
         'assets/stills/mongolia-3.webp',
         'assets/stills/mongolia-4.webp',
       ],
+      // What each still shows, for screen readers and image search.
+      alts: [
+        'Mongolia: an eagle hunter on a rock as his eagle flies off against the sun',
+        'Mongolia: a rider crossing a green valley beside a winding river',
+        'Mongolia: a single yurt at dusk, smoke rising from its chimney',
+        'Mongolia: an archer in a blue robe drawing his bow on the grassland',
+      ],
     },
     {
       title: 'Ocean Wonders', type: 'Short film', year: '2025', runtime: '01:49',
@@ -76,6 +90,13 @@
         'assets/stills/ocean-2.webp',
         ['assets/stills/ocean-3.webp', '56% 50%'],
         'assets/stills/ocean-4.webp',
+      ],
+      // What each still shows, for screen readers and image search.
+      alts: [
+        'Ocean Wonders: a sea turtle swimming just under the surface',
+        'Ocean Wonders: a bloom of glowing jellyfish in deep blue water',
+        'Ocean Wonders: a humpback whale breaching in a grey sea',
+        'Ocean Wonders: a narwhal surfacing among floating ice',
       ],
     },
     {
@@ -96,6 +117,13 @@
         ['assets/stills/aliens-3.jpg', '68% 50%'],
         'assets/stills/aliens-4.jpg',
       ],
+      // What each still shows, for screen readers and image search.
+      alts: [
+        'The Invasion: an alien ship hanging over the Eiffel Tower',
+        'The Invasion: a boy with an ice cream looking up in a city street',
+        'The Invasion: a child flying a kite on a windy hillside',
+        'The Invasion: a ship above the pyramids at Giza, riders on horseback below',
+      ],
     },
     {
       title: 'Krakatoa 1883', type: 'Short film', year: '2025', runtime: '04:22',
@@ -114,6 +142,13 @@
         ['assets/stills/krakatoa-2.webp', '42% 50%'],
         'assets/stills/krakatoa-3.webp',
         'assets/stills/krakatoa-4.webp',
+      ],
+      // What each still shows, for screen readers and image search.
+      alts: [
+        'Krakatoa 1883: the eruption, fire and ash bursting from the volcano',
+        'Krakatoa 1883: people running past a horse-drawn carriage in a street in Batavia',
+        'Krakatoa 1883: a huge wave rising in a stormy sea',
+        'Krakatoa 1883: a man in distress on a dark beach',
       ],
     },
   ];
@@ -1015,12 +1050,12 @@
         return [src, at && { objectPosition: at }];
       })
       : CROPS.map(([zoom, at]) => [poster, zoom !== 1 && { transform: `scale(${zoom})`, transformOrigin: at }]);
-    return pictures.map(([src, style]) => {
+    return pictures.map(([src, style], i) => {
       const box = make('div', 'project__still');
       if (src) {
         const img = make('img');
         img.src = src;
-        img.alt = '';
+        img.alt = (project.stills && project.alts && project.alts[i]) || '';
         if (style) Object.assign(img.style, style);
         box.append(img);
       }
