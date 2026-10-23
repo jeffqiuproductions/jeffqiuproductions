@@ -1,7 +1,9 @@
 /* The pointer — the mouse's own mark wherever the reel's disc isn't: an
-   empty ring, round like the disc it grows into over the reel (styles.css
-   draws it). On a link it opens into a wider pink ring round the pointer.
-   GSAP moves and sizes it. Off on touch screens, and while the page loads. */
+   empty ring, the disc's edge drawn small (styles.css draws both). On a link
+   it opens into a wider pink ring round the pointer; where the disc shows it
+   opens all the way out to the disc's edge and hands over to it, and comes
+   back out of it when the disc goes. GSAP moves and sizes it. Off on touch
+   screens, and while the page loads. */
 
 (() => {
   const gsap = window.gsap;
@@ -15,6 +17,7 @@
   const FOLLOW = 0.16;    // s the ring takes to catch the mouse
   const RING = 16;        // px across
   const RING_ON = 40;     // px across on a link
+  const DISC = 112;       // px across the disc it grows into
   const LINKS = 'a[href], button';
 
   const pointer = document.createElement('div');
@@ -29,10 +32,21 @@
 
   let at = null;      // where the mouse is, while it is on the page
   let aimed = null;   // the link it is on
+  let inDisc = false; // the disc shows in its place
 
   function show() {
-    const away = !at || Boolean(disc && disc.dataset.state) || root.classList.contains('is-loading');
+    const away = !at || root.classList.contains('is-loading');
     pointer.classList.toggle('is-away', away);
+    const onDisc = Boolean(disc && disc.dataset.state);
+    if (onDisc === inDisc) return;
+    inDisc = onDisc;
+    pointer.classList.toggle('is-disc', onDisc);
+    size();
+  }
+
+  function size() {
+    const to = inDisc ? DISC : aimed ? RING_ON : RING;
+    gsap.to(ring, { width: to, height: to, duration: reduceMotion.matches ? 0 : 0.45, ease: 'expo.out', overwrite: 'auto' });
   }
 
   function place(jump) {
@@ -51,8 +65,7 @@
     aimed = el;
     pointer.classList.toggle('is-aimed', Boolean(el));
     if (el) el.classList.add('is-aimed');
-    const size = el ? RING_ON : RING;
-    gsap.to(ring, { width: size, height: size, duration: reduceMotion.matches ? 0 : el ? 0.45 : 0.4, ease: 'expo.out', overwrite: 'auto' });
+    size();
   }
 
   addEventListener('pointermove', (e) => {
@@ -78,7 +91,7 @@
   });
   ['pointerup', 'pointercancel'].forEach((type) => addEventListener(type, () => pointer.classList.remove('is-pressed')));
 
-  // Hidden while the disc shows, and while the page loads.
+  // Into the disc and out of it as it shows and goes; hidden while the page loads.
   if (disc) new MutationObserver(show).observe(disc, { attributes: true, attributeFilter: ['data-state'] });
   new MutationObserver(show).observe(root, { attributes: true, attributeFilter: ['class'] });
 

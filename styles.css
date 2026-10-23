@@ -657,6 +657,11 @@ a {
   color: var(--color-muted);
 }
 
+/* "Email copied", for a moment after the email is clicked (reel.js). */
+.info__email-label.is-copied {
+  color: var(--color-needle);
+}
+
 .info__email {
   font-size: clamp(20px, 1.875vw, 40px);
   line-height: 1.2;
@@ -1043,16 +1048,14 @@ a {
 /* ---------- Cursor ---------- */
 
 /* With a mouse, over the reel the pointer is a frosted disc with words
-   running round it: Drag, an arrow either side in the middle; over the film
-   at the front, Open project, the right arrow turning to point up and out
-   in pink as it grows its shaft. The words turn slowly, faster as the reel
+   running round it, edged with a 1px ring like the pointer's, which opens
+   out into it (cursor.js): Drag, an arrow either side in the middle; over
+   the film at the front, Open project, the right arrow turning to point up
+   and out in pink as it grows its shaft, and the edge going pink as the
+   pointer's ring does on a link. The words turn slowly, faster as the reel
    runs (and back as it runs back); the disc stretches with the reel and its
    arrows spread while it is held. reel.js moves it. */
 .cursor {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 90;
   display: none;
   pointer-events: none;
 }
@@ -1065,8 +1068,18 @@ a {
   cursor: none;
 }
 
+/* Two layers, each on the page by itself (reel.js moves both alike): the
+   disc, and over it its edge, which like the pointer's ring inverts what
+   is under it, so it shows over a bright film as well as a dark one. */
 .cursor__body {
-  position: absolute;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 90;
+}
+
+.cursor__body--rim {
+  mix-blend-mode: difference;
 }
 
 .cursor__orbit {
@@ -1078,25 +1091,50 @@ a {
   width: 112px;
   height: 112px;
   translate: -50% -50%;
-  scale: 0;
+  scale: 0.143; /* the pointer's 16px ring, which it grows out of */
+  opacity: 0;
   border-radius: 50%;
   color: var(--color-ink);
   background: rgba(23, 23, 23, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(255, 159, 208, 0);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  transition: scale 0.45s var(--ease-out), background-color 0.3s;
+  transition: scale 0.45s var(--ease-out), opacity 0.3s, background-color 0.3s, box-shadow 0.3s;
 }
 
-.cursor:is([data-state="drag"], [data-state="open"]) .cursor__orbit {
+/* The edge: a 1px ring round the disc, grown and held with it. */
+.cursor__rim {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 112px;
+  height: 112px;
+  translate: -50% -50%;
+  scale: 0.143;
+  opacity: 0;
+  border: 1px solid var(--color-ink);
+  border-radius: 50%;
+  transition: scale 0.45s var(--ease-out), opacity 0.3s;
+}
+
+.cursor:is([data-state="drag"], [data-state="open"], [data-state="copy"], [data-state="copied"]) :is(.cursor__orbit, .cursor__rim) {
   scale: 1;
+  opacity: 1;
 }
 
-.cursor[data-state="drag"].is-pressed .cursor__orbit {
+/* Pink round the edge where a click does something (pink as it is, not
+   inverted). */
+.cursor:is([data-state="open"], [data-state="copy"], [data-state="copied"]) .cursor__orbit {
+  box-shadow: inset 0 0 0 1px var(--color-needle);
+}
+
+.cursor:is([data-state="open"], [data-state="copy"], [data-state="copied"]) .cursor__rim {
+  opacity: 0;
+}
+
+/* Held, it gives a little, as the pointer's ring does. */
+.cursor:is([data-state="drag"], [data-state="open"], [data-state="copy"], [data-state="copied"]).is-pressed :is(.cursor__orbit, .cursor__rim) {
   scale: 0.9;
-}
-
-.cursor[data-state="open"].is-pressed .cursor__orbit {
-  scale: 0.94;
 }
 
 /* The words: 12px on the circle (reel.js fits them round it). */
@@ -1133,7 +1171,9 @@ a {
 }
 
 .cursor[data-state="drag"] .cursor__words--drag,
-.cursor[data-state="open"] .cursor__words--open {
+.cursor[data-state="open"] .cursor__words--open,
+.cursor[data-state="copy"] .cursor__words--copy,
+.cursor[data-state="copied"] .cursor__words--copied {
   opacity: 1;
 }
 
@@ -1210,6 +1250,44 @@ a {
   translate: 2px -2px;
 }
 
+/* Over Info's email the arrows square up into the sign for a copy, two
+   7px squares across each other in the middle, 10 across in all and pink
+   like Open project's arrow; once it is copied the back one goes and the
+   front one folds into a tick, as wide. */
+.cursor:is([data-state="copy"], [data-state="copied"]) .cursor__orbit::before,
+.cursor:is([data-state="copy"], [data-state="copied"]) .cursor__orbit::after {
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border-width: 1px;
+  color: var(--color-needle);
+  rotate: 0deg;
+  transition: opacity 0.2s, translate 0.5s var(--ease-out), rotate 0.5s var(--ease-out), color 0.3s,
+    width 0.5s var(--ease-out), height 0.5s var(--ease-out), border-width 0.3s;
+}
+
+.cursor[data-state="copy"] .cursor__orbit::before {
+  translate: 9px -1.5px;
+}
+
+.cursor[data-state="copy"] .cursor__orbit::after {
+  translate: -9px 1.5px;
+}
+
+.cursor[data-state="copied"] .cursor__orbit::before {
+  opacity: 0;
+  translate: 9px -1.5px;
+}
+
+.cursor[data-state="copied"] .cursor__orbit::after {
+  width: 5px;
+  height: 10px;
+  margin-top: -5px;
+  border-width: 0 1px 1px 0;
+  translate: -11.5px -1.5px;
+  rotate: 45deg;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cursor__ring {
     animation: none;
@@ -1228,14 +1306,17 @@ a {
 
 /* ---------- Pointer ---------- */
 
-/* The mouse's own mark everywhere the disc isn't: an empty ring, round like
-   the disc it grows into over the reel. On a link it opens into a wider
-   pink ring and the words go pink (cursor.js moves it and sizes it). */
+/* The mouse's own mark everywhere the disc isn't: an empty ring, the
+   disc's edge drawn small. On a link it opens into a wider pink ring and
+   the words go pink; where the disc shows it opens out to the disc's edge
+   and fades as the disc comes in (cursor.js moves it and sizes it). */
 .has-pointer:not(.is-loading),
 .has-pointer:not(.is-loading) * {
   cursor: none !important;
 }
 
+/* Inverting what is under it: the blend sits on the page's own layer, as
+   one inside it would only meet the layer's empty back. */
 .pointer {
   position: fixed;
   left: 0;
@@ -1243,6 +1324,11 @@ a {
   z-index: 91;
   display: none;
   pointer-events: none;
+  mix-blend-mode: difference;
+}
+
+.pointer.is-aimed {
+  mix-blend-mode: normal;
 }
 
 .has-pointer .pointer {
@@ -1257,7 +1343,6 @@ a {
   translate: -50% -50%;
   border: 1px solid var(--color-ink);
   border-radius: 50%;
-  mix-blend-mode: difference;
   transition: opacity 0.25s, scale 0.35s var(--ease-out), border-color 0.25s;
 }
 
@@ -1266,13 +1351,17 @@ a {
   scale: 0;
 }
 
+.pointer.is-disc .pointer__ring {
+  opacity: 0;
+  transition: opacity 0.35s, scale 0.35s var(--ease-out), border-color 0.25s;
+}
+
 .pointer.is-pressed .pointer__ring {
-  scale: 0.75;
+  scale: 0.9;
 }
 
 .pointer.is-aimed .pointer__ring {
   border-color: var(--color-needle);
-  mix-blend-mode: normal;
 }
 
 /* Every link alike, the timeline's numbers too. */

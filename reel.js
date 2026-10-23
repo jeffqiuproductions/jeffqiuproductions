@@ -212,11 +212,12 @@
   const PEN_SPEED = 0.5;        // signature units a ms its pen draws at
   const PEN_FRAMES = 90;        // steps its one take is laid out in
   const EMAIL_MIN = 14;         // px Info's email shrinks to before it wraps
+  const COPIED_FOR = 2500;      // ms the email's label says it was copied
   const CURSOR_FOLLOW = 20;     // spring rate the cursor eases after the mouse
   const CURSOR_STRETCH = 0.08;  // how far it stretches for each card a second
                                 // the reel runs at…
   const CURSOR_STRETCH_MAX = 0.4; // …and at most
-  const RING_RADIUS = 43.87;    // px of the circle the cursor's words run round
+  const RING_RADIUS = 41;       // px of the circle the cursor's words run round, clear of its edge
   const RING_TRACK = 2;         // px or so between their letters
 
   const MUTED = '#8b8984';
@@ -919,6 +920,7 @@
   const infoCloser = info.querySelector('.info__close');
   const paragraphs = info.querySelectorAll('.info__description p');
   const email = info.querySelector('.info__email');
+  const emailLabel = info.querySelector('.info__email-label');
   const address = email.textContent.trim();
   let infoOpen = false;
 
@@ -947,6 +949,59 @@
     email.replaceChildren(address.slice(0, at), document.createElement('wbr'), address.slice(at));
     email.classList.add('is-wrapped');
   }
+
+  // With a mouse the disc over the email says Copy email, and a click copies
+  // it and says Copied (if it can't be copied, a new mail opens instead).
+  // With a finger or the keyboard a click opens a new mail as ever and copies
+  // the address too, for anyone without a mail app set up; the label over it
+  // turns to say so, pink, and back after a moment.
+  let emailCopied = false;      // copied with the disc on it, till it leaves
+  let copied = 0;
+  function labelEmail(words, isCopied) {
+    emailLabel.textContent = words;
+    emailLabel.classList.toggle('is-copied', isCopied);
+    if (reduceMotion.matches) return;
+    emailLabel.animate([{ transform: 'perspective(600px) rotateX(-90deg)' }, { transform: 'none' }], {
+      duration: SLAT_IN, easing: 'cubic-bezier(0.3, 1.45, 0.6, 1)',
+    });
+  }
+  // The address onto the clipboard: by the Clipboard API where the browser
+  // allows it, else by selecting it and copying, as browsers did before.
+  function copyAddress() {
+    const byHand = () => {
+      const field = document.createElement('textarea');
+      field.value = address;
+      field.readOnly = true;
+      field.style.cssText = 'position: fixed; top: 0; left: 0; opacity: 0; pointer-events: none;';
+      info.append(field);
+      field.select();
+      const done = document.execCommand('copy');
+      field.remove();
+      email.focus({ preventScroll: true });
+      if (!done) throw new Error('Not copied');
+    };
+    return (navigator.clipboard ? navigator.clipboard.writeText(address) : Promise.reject()).catch(byHand);
+  }
+
+  email.addEventListener('click', (e) => {
+    const onDisc = cursorState === 'copy' || cursorState === 'copied';
+    if (onDisc) e.preventDefault();
+    copyAddress().then(() => {
+      if (onDisc) {
+        emailCopied = true;
+        aimCursor();
+        return;
+      }
+      if (!copied) labelEmail('Email copied', true);
+      clearTimeout(copied);
+      copied = setTimeout(() => {
+        copied = 0;
+        labelEmail('Email', false);
+      }, COPIED_FOR);
+    }, () => {
+      if (onDisc) location.href = email.href;
+    });
+  });
 
   /* Rows turn in their turn down a sheet (Info, a project's page) like the
      title's slats; rows level with each other turn together, and pictures
@@ -1264,10 +1319,11 @@
 
   /* With a mouse, over the reel's zone a disc with Drag running round it;
      over the film at the front, with the reel at rest, Open project (a click
-     there opens the project's page). It eases after the mouse and stretches with the reel as it runs, and its words turn
+     there opens the project's page); over Info's email, Copy email, then
+     Copied. It eases after the mouse and stretches with the reel as it runs, and its words turn
      with the reel (--roll, in cards run). */
   const cursor = document.querySelector('.cursor');
-  const cursorBody = cursor.querySelector('.cursor__body');
+  const cursorBodies = cursor.querySelectorAll('.cursor__body'); // the disc and its edge
   const mouse = matchMedia('(hover: hover) and (pointer: fine)');
   let pointer = null;             // where the mouse is, while it is on the page
   const drawn = { x: 0, y: 0 };   // where the cursor is
@@ -1316,9 +1372,11 @@
   }
 
   function stateAt(el) {
-    // With Info or a project's page open, the pointer (a click on the page
-    // dimmed beside Info still closes it).
-    if (infoOpen || projectOpen) return '';
+    // With Info open, the disc over the email; elsewhere there, and with a
+    // project's page open, the pointer (a click on the page dimmed beside
+    // Info still closes it).
+    if (infoOpen) return el instanceof Element && el.closest('.info__email') ? (emailCopied ? 'copied' : 'copy') : '';
+    if (projectOpen) return '';
     if (dragging && dragging.moved) return 'drag';
     if (!zoneAt(pointer.y, el)) return '';
     if (!root.classList.contains('is-moving') && el.closest('.reel__card.is-front')) return 'open';
@@ -1328,6 +1386,7 @@
   function aimCursor() {
     if (!mouse.matches) return;
     const state = pointer ? stateAt(document.elementFromPoint(pointer.x, pointer.y)) : '';
+    if (!state.startsWith('cop')) emailCopied = false;
     if (state === cursorState) return;
     if (!cursorState && pointer) Object.assign(drawn, pointer); // it appears where the mouse is
     cursorState = state;
@@ -1353,8 +1412,8 @@
     }
     const stretch = cursorState === 'drag' && !reduceMotion.matches
       ? Math.min(Math.abs(velocity) * CURSOR_STRETCH, CURSOR_STRETCH_MAX) : 0;
-    cursor.style.transform = `translate3d(${drawn.x.toFixed(2)}px, ${drawn.y.toFixed(2)}px, 0)`;
-    cursorBody.style.transform = `scale(${(1 + stretch).toFixed(3)}, ${(1 - stretch / 2).toFixed(3)})`;
+    const at = `translate3d(${drawn.x.toFixed(2)}px, ${drawn.y.toFixed(2)}px, 0) scale(${(1 + stretch).toFixed(3)}, ${(1 - stretch / 2).toFixed(3)})`;
+    for (const body of cursorBodies) body.style.transform = at;
     if (velocity) {
       roll += velocity * dt;
       cursor.style.setProperty('--roll', roll.toFixed(4));
