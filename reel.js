@@ -154,9 +154,24 @@
   ];
 
   const N = PROJECTS.length;
-  // Each project's page has its own address, #its-title (#krakatoa-1883).
+  // Each project's page has its own address, /its-title/ (/krakatoa-1883/).
+  // A page there (krakatoa-1883/index.html) gives a link to it the film's own
+  // share card and brings the visitor here, to #its-title, which opens the
+  // project as older links do.
   PROJECTS.forEach((project) => (project.slug = project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')));
-  const projectAt = (hash) => PROJECTS.findIndex((project) => `#${project.slug}` === hash);
+  const HOME = location.pathname.replace(/[^/]*$/, '');
+  const addressOf = (i) => `${HOME}${PROJECTS[i].slug}/`;
+  const projectAt = () => PROJECTS.findIndex((project, i) => location.hash === `#${project.slug}` || location.pathname === addressOf(i));
+  // Films and stills by their full address, which still holds when a
+  // project's page has moved the address on to /its-title/.
+  const full = (path) => path && new URL(path, location.href).href;
+  PROJECTS.forEach(({ media, stills }) => {
+    if (media) {
+      Object.assign(media, { src: full(media.src), poster: full(media.poster) });
+      if (media.phone) Object.assign(media.phone, { src: full(media.phone.src), poster: full(media.phone.poster) });
+    }
+    stills?.forEach((still, i) => (stills[i] = Array.isArray(still) ? [full(still[0]), still[1]] : full(still)));
+  });
   const SITE = document.title;
   const META = ['type', 'year', 'runtime', 'watch'];
   // Where a film can be watched, in the order looked for; the last meta row
@@ -1157,8 +1172,9 @@
   function openProject(i, { push = true } = {}) {
     if (projectOpen) return;
     projectOpen = true;
-    const address = `#${PROJECTS[i].slug}`;
-    if (push && location.hash !== address) history.pushState({ project: i }, '', address);
+    const address = addressOf(i);
+    if (push) history.pushState({ project: i }, '', address);
+    else if (location.pathname !== address) history.replaceState(history.state, '', address);
     document.title = `${PROJECTS[i].title} — ${SITE}`;
     stopFilm();
     hero.inert = true;
@@ -1178,7 +1194,7 @@
     projectOpen = false;
     document.title = SITE;
     if (!pop && history.state && history.state.project !== undefined) history.back();
-    else if (!pop) history.replaceState(null, '', location.pathname + location.search);
+    else if (!pop) history.replaceState(null, '', HOME + location.search);
     const focused = projectPage.contains(document.activeElement);
     hero.inert = false;
     scrolling = false;
@@ -1200,7 +1216,7 @@
   }
 
   addEventListener('popstate', () => {
-    const i = projectAt(location.hash);
+    const i = projectAt();
     if (i === -1) closeProject({ pop: true });
     else if (!projectOpen) {
       jump(i);
@@ -1377,7 +1393,7 @@
   if (location.hash === '#info') openInfo();
   // A link to a project's page: the reel starts on the project, and its page
   // rises once the site has come in.
-  const linked = projectAt(location.hash);
+  const linked = projectAt();
   if (linked !== -1) {
     jump(linked);
     const rise = () => setTimeout(() => openProject(linked, { push: false }), LINKED_AFTER);

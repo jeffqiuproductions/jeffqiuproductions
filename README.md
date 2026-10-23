@@ -17,7 +17,7 @@ The type is Syne for titles and Geist for everything else, in three colors: off-
 - **Project pages.** A click on the film at the front opens its page, rising from the bottom. The text stays in place while the stills scroll past, and Jeff's signature draws itself under the text in one stroke.
 - **Info.** It slides in from the right with a short intro, the services, the email and the socials. Close or Esc closes it.
 - **The pointer.** An empty ring follows the mouse and opens into a pink ring over links.
-- **Addresses.** Every film has its own address, such as [/#mongolia](https://jeffqproductions.github.io/#mongolia), and Info has [/#info](https://jeffqproductions.github.io/#info). The browser's back button closes a project page.
+- **Addresses and sharing.** Every film has its own address, such as [/mongolia/](https://jeffqproductions.github.io/mongolia/), and Info has [/#info](https://jeffqproductions.github.io/#info). A shared link to a film shows that film's own card: its still, its title and its place on the timeline. The browser's back button closes a project page.
 - **Phones.** The cards turn square, and each film has its own square cut, framed shot by shot on what matters in it, at about a quarter of the file size.
 - **For everyone.** It works with the keyboard, calms down for people who ask for reduced motion, and describes every still for screen readers. Without WebGL, the dust is left out and the page stays plain black.
 
@@ -35,9 +35,10 @@ The design was made in Figma at 1280 × 832, on a 12-column grid with 40px margi
 | `loader.js` | The name in dust that opens the site |
 | `backdrop.js` | The dust drifting behind the page |
 | `cursor.js` | The ring that follows the pointer |
+| `mongolia/` and the other films' folders | Each film's address: the page a shared link reads for the film's card, which then opens the film on the reel |
 | `404.html` | The page for a wrong address: the reel with nothing on it and the way back |
 | `robots.txt`, `sitemap.xml` | Where search engines find the site |
-| `assets/` | The films, their stills, the tab icon and the share image |
+| `assets/` | The films, their stills, the tab icon and the share cards |
 
 ## Credits
 
