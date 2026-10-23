@@ -31,7 +31,7 @@
   let aimed = null;   // the link it is on
 
   function show() {
-    const away = !at || Boolean(disc.dataset.state) || root.classList.contains('is-loading');
+    const away = !at || Boolean(disc && disc.dataset.state) || root.classList.contains('is-loading');
     pointer.classList.toggle('is-away', away);
   }
 
@@ -79,7 +79,7 @@
   ['pointerup', 'pointercancel'].forEach((type) => addEventListener(type, () => pointer.classList.remove('is-pressed')));
 
   // Hidden while the disc shows, and while the page loads.
-  new MutationObserver(show).observe(disc, { attributes: true, attributeFilter: ['data-state'] });
+  if (disc) new MutationObserver(show).observe(disc, { attributes: true, attributeFilter: ['data-state'] });
   new MutationObserver(show).observe(root, { attributes: true, attributeFilter: ['class'] });
 
   const fit = () => root.classList.toggle('has-pointer', mouse.matches);

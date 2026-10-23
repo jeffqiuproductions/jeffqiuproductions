@@ -1280,6 +1280,64 @@ a {
   color: var(--color-needle);
 }
 
+/* ---------- Page not found (404.html) ---------- */
+
+/* Where the reel would be: an empty frame the size of the front card (as
+   wide as its columns, 440 high in the 832 frame, square on phones), the way
+   back in it and its timecode stopped at zero. */
+.lost__stage {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: 24px var(--margin);
+}
+
+.lost__frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: min(
+    calc((100vw - 2 * var(--margin) - 11 * var(--gutter)) / 12 * var(--front-cols) + (var(--front-cols) - 1) * var(--gutter)),
+    calc((max(100svh, 560px) - 392px) * var(--card-ratio, 1.8))
+  );
+  aspect-ratio: var(--card-ratio, 1.8);
+  background: #000;
+  text-align: center;
+}
+
+.lost__note {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+/* Its box reaches 8 past it all round, for a finger. */
+.lost__back {
+  margin: -8px;
+  padding: 8px;
+}
+
+.lost__time {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lost__time::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-needle);
+}
+
 /* ---------- Smaller windows ---------- */
 
 /* Tablets: the card takes ten columns and the meta moves under the title,
@@ -1365,7 +1423,7 @@ a {
     display: none;
   }
 
-  /* The name stacks: Jeff.q over Productions. */
+  /* The name stacks: Jeff.Q over Productions. */
   .loader__name {
     /* Productions is 12.6em: the width less the gutters. */
     font-size: calc((100vw - 32px) / 12.7);

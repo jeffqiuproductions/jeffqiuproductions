@@ -1,4 +1,4 @@
-# Jeff.q Productions
+# Jeff.Q Productions
 
 A portfolio website where Jeff Qiu shows his films and commercials, built to feel like watching a reel. See it at **[jeffqproductions.github.io](https://jeffqproductions.github.io/)**.
 
@@ -35,6 +35,8 @@ The design was made in Figma at 1280 × 832, on a 12-column grid with 40px margi
 | `loader.js` | The name in dust that opens the site |
 | `backdrop.js` | The dust drifting behind the page |
 | `cursor.js` | The ring that follows the pointer |
+| `404.html` | The page for a wrong address: the reel with nothing on it and the way back |
+| `robots.txt`, `sitemap.xml` | Where search engines find the site |
 | `assets/` | The films, their stills, the tab icon and the share image |
 
 ## Credits

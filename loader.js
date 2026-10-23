@@ -88,7 +88,7 @@
   const name = document.createElement('div');
   name.className = 'loader__name';
   name.setAttribute('aria-hidden', 'true');
-  name.innerHTML = '<span>Jeff.q</span> <span>Productions</span>';
+  name.innerHTML = '<span>Jeff.Q</span> <span>Productions</span>';
   const row = document.createElement('div');
   row.className = 'loader__row label loader__type';
   const label = document.createElement('span');
@@ -282,6 +282,8 @@
       dpr = Math.min(devicePixelRatio || 1, 2);
       const width = Math.round(canvas.clientWidth * dpr);
       const height = Math.round(canvas.clientHeight * dpr);
+      // A window with no size yet (a hidden tab): paint on the next resize.
+      if (!width || !height) return;
       canvas.width = mask.width = width;
       canvas.height = mask.height = height;
       gl.viewport(0, 0, width, height);

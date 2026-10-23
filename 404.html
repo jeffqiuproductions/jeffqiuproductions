@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page not found · Jeff.Q Productions</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#171717">
+  <!-- GitHub Pages shows this page at any address that doesn't exist, however
+       deep, so every link starts at the root. -->
+  <link rel="icon" type="image/png" sizes="64x64" href="/assets/icon.png?v=icon-2">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png?v=icon-2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Syne:wght@800&display=swap">
+  <link rel="stylesheet" href="/styles.css?v=reel-32">
+</head>
+<body>
+  <!-- A wrong address: the first screen with nothing on the reel. The bar as
+       on the site, an empty frame where the films would play (its timecode
+       stopped at zero) and the way back, the title and meta at the foot over
+       a bare timeline. -->
+  <main class="hero lost">
+    <canvas class="backdrop" aria-hidden="true"></canvas>
+
+    <header class="hero__bar">
+      <p class="brand">Jeff.Q Productions</p>
+      <div class="hero__menu">
+        <a class="label link watch" href="/#info">Info</a>
+      </div>
+    </header>
+
+    <div class="lost__stage">
+      <div class="lost__frame">
+        <p class="lost__note label">Nothing plays at this address</p>
+        <a class="lost__back label link watch" href="/">Back to the reel</a>
+        <span class="lost__time label" aria-hidden="true">00:00:00:00</span>
+      </div>
+    </div>
+
+    <div class="hero__foot">
+      <h1 class="title"><span class="title__text">Off the reel</span></h1>
+
+      <dl class="meta">
+        <div class="meta__row"><dt>Type</dt><dd>Error</dd></div>
+        <div class="meta__row"><dt>Code</dt><dd>404</dd></div>
+        <div class="meta__row"><dt>Runtime</dt><dd>00:00</dd></div>
+      </dl>
+
+      <div class="timeline" aria-hidden="true">
+        <svg class="timeline__ticks"></svg>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // The timeline's rule and ticks as on the site (reel.js), on the
+    // 12-column grid: a long tick over each column's centre, three short
+    // ones between, all on whole pixels.
+    (() => {
+      const line = document.querySelector('.timeline');
+      const ticks = line.querySelector('.timeline__ticks');
+      const at = (n) => Math.round(n) + 0.5;
+      const draw = () => {
+        const width = line.clientWidth;
+        const gutter = parseFloat(getComputedStyle(line).getPropertyValue('--gutter')) || 16;
+        const col = (width - 11 * gutter) / 12;
+        const step = (col + gutter) / 4;
+        let short = '';
+        let long = '';
+        for (let j = -Math.floor(col / 2 / step); ; j++) {
+          const x = col / 2 + j * step;
+          if (x >= width) break;
+          if (x < 0) continue;
+          if (((j % 4) + 4) % 4) short += `M${at(x)} 1V7`;
+          else long += `M${at(x)} 1V14`;
+        }
+        ticks.setAttribute('viewBox', `0 0 ${width} 15`);
+        ticks.innerHTML =
+          `<path d="M0 0.5H${width}" stroke="#8b8984"/>` +
+          `<path d="${short}" stroke="#8b8984"/>` +
+          `<path d="${long}" stroke="#8b8984"/>`;
+      };
+      draw();
+      addEventListener('resize', draw);
+    })();
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="/cursor.js?v=reel-32"></script>
+  <script src="/backdrop.js?v=reel-32"></script>
+</body>
+</html>
